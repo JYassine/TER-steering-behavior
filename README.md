@@ -4,7 +4,6 @@ TER PLANNING : <br/>
 
 Jusqu'à la rentrée : (01/03) <br/>
 -> Testé la librairie Yuka et apprendre un ou deux comportements et faire un mini-demonstrateur <br/>
-
 -> Réunion avec l'encadrant pour faire une mise au point <br/>
 
 (Jusqu'au 20/03) <br/>
@@ -13,11 +12,11 @@ Jusqu'à la rentrée : (01/03) <br/>
 -> Réunion <br/>
 
 (Jusqu'au 10/04) <br/>
--> implémenté un nouveau comportement dans la librairie babylon JS <br/>
+-> implémenté un nouveau comportement dans babylon JS <br/>
 -> Réunion <br/>
 
 (Jusqu'au 24/04) <br/>
--> Faire un démonstrateur du comportement implémenté dans la librairie babylon JS <br/>
+-> Faire un démonstrateur du comportement implémenté dans babylon JS <br/>
 -> Réunion <br/>
 
 (Jusqu'au 15/05) <br/>
