@@ -5,8 +5,8 @@ import { MathUtils } from './MathUtils.js';
 *
 * @author {@link https://github.com/Mugen87|Mugen87}
 */
-class Vector3 {
 
+class Vector3 {
 	/**
 	* Constructs a new 3D vector with the given values.
 	*
@@ -14,6 +14,7 @@ class Vector3 {
 	* @param {Number} y - The y component.
 	* @param {Number} z - The z component.
 	*/
+	
 	constructor( x = 0, y = 0, z = 0 ) {
 
 		/**
