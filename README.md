@@ -24,3 +24,5 @@ Jusqu'à la rentrée : (01/03) <br/>
 
 
 Lien trello pour la gestion de projet : https://trello.com/b/skfer6P0/ter-steering-behaviour
+
+Lien pour tester le comportement seek behaviour dans le jeu (ce sont les missiles qui se dirigent vers vers le cercle rouge) : http://babylonseascape.livehost.fr/
