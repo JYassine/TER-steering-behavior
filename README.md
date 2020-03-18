@@ -21,3 +21,6 @@ Jusqu'à la rentrée : (01/03) <br/>
 
 (Jusqu'au 15/05) <br/>
 -> Finir la démo 3D et potentiellement ajouté de nouveaux comportements dans le jeu concours <br/>
+
+
+Lien trello pour la gestion de projet : https://trello.com/b/skfer6P0/ter-steering-behaviour
