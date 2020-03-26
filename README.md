@@ -22,7 +22,6 @@ Jusqu'à la rentrée : (01/03) <br/>
 (Jusqu'au 15/05) <br/>
 -> Finir la démo 3D et potentiellement ajouté de nouveaux comportements dans le jeu concours <br/>
 
-
-Lien trello pour la gestion de projet : https://trello.com/b/skfer6P0/ter-steering-behaviour
+gestion de projet : la gestion de projet se fera maintenant sur le git
 
 Lien pour tester le comportement seek behaviour dans le jeu (ce sont les missiles qui se dirigent vers vers le cercle rouge) : http://babylonseascape.livehost.fr/
