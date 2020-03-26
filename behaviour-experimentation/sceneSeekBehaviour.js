@@ -45,6 +45,7 @@ var createScene = function () {
     /** Target */
     var target = BABYLON.MeshBuilder.CreateBox("myBox", { height: 60, width: 60, depth: 60 }, scene);
     target.position.y = 25
+    target.material=materialShip
 
     //UI
 
@@ -130,7 +131,12 @@ var createScene = function () {
     UiPanel.addControl(buttonStop);
 
 
+    var time=0;
+    var radius=300
     scene.registerAfterRender(function () {
+        target.position.x = Math.cos( time/25 ) * Math.sin( (time/25) * 0.8 ) * radius;
+        target.position.z = Math.sin( (time/25) * 0.5 ) * radius;
+        
         if (pursuerCreated === true) {
             pursuers.forEach(p => {
                 p.maxSpeed = paramsPursuer["maxSpeed"]
@@ -142,6 +148,7 @@ var createScene = function () {
                 pursuers[i].update()
             }
         }
+        time+=1
 
     });
 
