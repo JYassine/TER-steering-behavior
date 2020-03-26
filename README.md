@@ -24,4 +24,6 @@ Jusqu'à la rentrée : (01/03) <br/>
 
 gestion de projet : la gestion de projet se fera maintenant sur le git
 
-Lien pour tester le comportement seek behaviour dans le jeu (ce sont les missiles qui se dirigent vers vers le cercle rouge) : http://babylonseascape.livehost.fr/
+Lien test : https://526977.playcode.io
+Lien de test avec code modifiable : https://playcode.io/526977
+
