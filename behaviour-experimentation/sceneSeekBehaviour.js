@@ -144,7 +144,7 @@ var createScene = function () {
             });
             for (let i = 0; i < pursuers.length; i++) {
                 pursuers[i].seek(target)
-                pursuers[i].facePoint(pursuers[i].getMesh(), target.position)
+                pursuers[i].facePoint(target.position)
                 pursuers[i].update()
             }
         }

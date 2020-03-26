@@ -11,12 +11,12 @@ export default class Behaviour {
 
     }
 
-    facePoint (rotatingObject, pointToRotateTo) {
+    facePoint (pointToRotateTo) {
 		// a directional vector from one object to the other one
-		var direction = pointToRotateTo.subtract(rotatingObject.position);
+		var direction = pointToRotateTo.subtract(this.mesh.position);
 		
-		if (!rotatingObject.rotationQuaternion) {
-			rotatingObject.rotationQuaternion = BABYLON.Quaternion.Identity();
+		if (!this.mesh.rotationQuaternion) {
+			this.mesh.rotationQuaternion = BABYLON.Quaternion.Identity();
 		}
 		
 		direction.normalize();
@@ -40,7 +40,7 @@ export default class Behaviour {
 		mat.m[9] = yaxis.y;
 		mat.m[10] = yaxis.z;
 		
-		BABYLON.Quaternion.FromRotationMatrixToRef(mat, rotatingObject.rotationQuaternion);
+		BABYLON.Quaternion.FromRotationMatrixToRef(mat, this.mesh.rotationQuaternion);
 		
 	}
 
