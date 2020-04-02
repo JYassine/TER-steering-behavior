@@ -1,5 +1,5 @@
-import Behaviour from "./Behaviour.js";
-import Utilities from "./Utilities.js";
+import Behaviour from "../Behaviour.js";
+import Utilities from "../Utilities.js";
 
 export default class WanderBehaviour extends Behaviour{
 
@@ -11,6 +11,12 @@ export default class WanderBehaviour extends Behaviour{
         this.wanderAngle=0;
         this.wanderForce= new BABYLON.Vector3(0,0,0)
         
+        
+    }
+
+    updateParameters(wanderDistance,wanderRadius){
+        this.wanderRadius= new BABYLON.Vector3(wanderRadius,0,wanderRadius)
+        this.wanderDistance= new BABYLON.Vector3(wanderDistance,0,wanderDistance)
         
     }
 

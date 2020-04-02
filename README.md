@@ -24,6 +24,17 @@ Jusqu'à la rentrée : (01/03) <br/>
 
 gestion de projet : la gestion de projet se fera maintenant sur le git
 
-Lien test : https://526977.playcode.io
-Lien de test avec code modifiable : https://playcode.io/526977
+#TEST SEEK BEHAVIOUR : 
+
+Lien test : https://538663.playcode.io
+Lien de test avec code modifiable : https://playcode.io/538663
+
+#TEST WANDER BEHAVIOUR : 
+
+Lien de test : https://526977.playcode.io
+Lien de test avec code modifiable  : https://playcode.io/526977
+
+
+
+
 
