@@ -4,15 +4,22 @@ export default class Behaviour {
         this.mesh=mesh
         this.target = undefined
         this.position = mesh.position
-        this.velocity = new BABYLON.Vector3(0.2, 0, 0)
+        this.velocity = new BABYLON.Vector3(2, 0, 0)
         this.acceleration = new BABYLON.Vector3(0, 0, 0)
         this.maxSpeed = 2
         this.maxForce = 0.1
 
     }
 
+
+    run(target){
+
+
+    }
+
     facePoint (pointToRotateTo) {
-		// a directional vector from one object to the other one
+        // a directional vector from one object to the other one
+   
 		var direction = pointToRotateTo.subtract(this.mesh.position);
 		
 		if (!this.mesh.rotationQuaternion) {
@@ -21,7 +28,7 @@ export default class Behaviour {
 		
 		direction.normalize();
 		
-		var mat = BABYLON.Matrix.Identity();
+        var mat = BABYLON.Matrix.Identity();
 		
 		var upVec = BABYLON.Vector3.Up();
 		
@@ -38,7 +45,8 @@ export default class Behaviour {
 		
 		mat.m[8] = yaxis.x;
 		mat.m[9] = yaxis.y;
-		mat.m[10] = yaxis.z;
+        mat.m[10] = yaxis.z;
+        
 		
 		BABYLON.Quaternion.FromRotationMatrixToRef(mat, this.mesh.rotationQuaternion);
 		

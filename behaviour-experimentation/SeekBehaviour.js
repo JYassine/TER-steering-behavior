@@ -1,21 +1,29 @@
 import Behaviour from "./Behaviour.js";
 
-export default class SeekBehaviour extends Behaviour{
+export default class SeekBehaviour extends Behaviour {
 
-    constructor(mesh){
+    constructor(mesh) {
         super(mesh)
+        this.desired = undefined
+        this.velocity = new BABYLON.Vector3(-0.2, 0, 0)
+        this.maxDistance=0;
     }
+    
 
-    seek(target) {
-        this.target = target
-        var desired = target.position.subtract(this.position);  // A vector pointing from the position to the target
-        
+    run(target) {
+        var x = this.position.x-target.position.x-this.maxDistance;
+        var z = this.position.z-target.position.z-this.maxDistance;
+        this.desired = target.position.subtract(new BABYLON.Vector3(x,this.position.y,z)); 
+
         // Scale to maximum speed
-        desired.normalize()
-        desired.multiplyInPlace(new BABYLON.Vector3(this.maxSpeed, this.maxSpeed, this.maxSpeed))
-        
+        this.desired.normalize()
+        this.desired.multiplyInPlace(new BABYLON.Vector3(this.maxSpeed, this.maxSpeed, this.maxSpeed))
+
         // Steering = Desired minus velocity
-        var steer = desired.subtract(this.velocity);
-        super.applyForce(steer);
+        this.steer = this.desired.subtract(this.velocity);
+        
+        super.applyForce(this.steer)
+
+        this.facePoint(target.position)
     }
 }
