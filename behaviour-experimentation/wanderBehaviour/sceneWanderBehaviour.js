@@ -7,7 +7,6 @@ var scene = null;
 var pursuerCreated = false;
 var materialShip;
 var pursuers = []
-var radiusUI = []
 var ground;
 var target;
 var paramsGUI = [
@@ -21,18 +20,7 @@ var paramsPursuer = {
 
 }
 
-var createRadiusCircle = () => {
 
-    var circle = BABYLON.MeshBuilder.CreateCylinder("cone", { diameter: 400, tessellation: 50 }, scene);
-    
-    var materialCircle = new BABYLON.StandardMaterial("shiptx1", scene);
-    materialCircle.diffuseColor = new BABYLON.Color3(0, 1, 0); //Red
-
-    circle.material=materialCircle
-
-    radiusUI.push(circle)
-
-}
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
 
@@ -119,7 +107,6 @@ var createScene = function () {
 
         /** Seek behaviour */
         var wanderBehaviour = new WanderBehaviour(pursuer)
-        createRadiusCircle()
         pursuers.push(wanderBehaviour)
         pursuerCreated = true
 
@@ -136,11 +123,7 @@ var createScene = function () {
         pursuers.forEach(p => {
             p.getMesh().dispose()
         });
-        radiusUI.forEach(radius => {
-            radius.dispose()
-        });
         pursuers = []
-        radiusUI=[]
         pursuerCreated = false
     });
 
@@ -156,10 +139,6 @@ var createScene = function () {
                 p.updateParameters(paramsPursuer["distance"], paramsPursuer["radius"])
             });
             for (let i = 0; i < pursuers.length; i++) {
-                radiusUI[i].position.x = pursuers[i].position.x
-                radiusUI[i].position.z = pursuers[i].position.z
-                radiusUI[i].scaling=new BABYLON.Vector3(paramsPursuer["radius"],paramsPursuer["radius"],paramsPursuer["radius"])
-                
                 pursuers[i].run(target)
                 pursuers[i].update()
             }

@@ -7,16 +7,11 @@ var scene = null;
 var pursuerCreated = false;
 var pursuers = []
 var paramsGUI = [
-    { name: "maxForce", anim: 5, weight: 5 },
-    { name: "maxSpeed", anim: 15, weight: 15 },
-    
-    { name: "maxDistance", anim: 500, weight: 500 }
+    { name: "maxSpeed", anim: 15, weight: 15 }
 ]
 
 var paramsPursuer = {
-    "maxForce": paramsGUI[0].anim,
-    "maxSpeed": paramsGUI[1].anim,
-    "maxDistance" : paramsGUI[2].anim
+    "maxSpeed": paramsGUI[0].anim
 }
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
@@ -82,9 +77,7 @@ var createScene = function () {
         slider.onValueChangedObservable.add((v) => {
             param.anim = v * param.weight;
             paramsPursuer = {
-                "maxForce": paramsGUI[0].anim,
-                "maxSpeed": paramsGUI[1].anim,
-                "maxDistance": paramsGUI[2].anim
+                "maxSpeed": paramsGUI[0].anim
             }
             header.text = param.name + ":" + param.anim;
         })
@@ -144,8 +137,6 @@ var createScene = function () {
         if (pursuerCreated === true) {
             pursuers.forEach(p => {
                 p.maxSpeed = paramsPursuer["maxSpeed"]
-                p.maxForce = paramsPursuer["maxForce"]
-                p.maxDistance = paramsPursuer["maxDistance"]
             });
             for (let i = 0; i < pursuers.length; i++) {
                 pursuers[i].run(target)
@@ -156,8 +147,6 @@ var createScene = function () {
         time+=1
 
     });
-
-
 
     return scene;
 

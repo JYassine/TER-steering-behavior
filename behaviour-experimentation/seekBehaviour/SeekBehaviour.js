@@ -6,13 +6,12 @@ export default class SeekBehaviour extends Behaviour {
         super(mesh)
         this.desired = undefined
         this.velocity = new BABYLON.Vector3(-0.2, 0, 0)
-        this.maxDistance=0;
     }
     
 
     run(target) {
-        var x = this.position.x-target.position.x-this.maxDistance;
-        var z = this.position.z-target.position.z-this.maxDistance;
+        var x = this.position.x;
+        var z = this.position.z;
         this.desired = target.position.subtract(new BABYLON.Vector3(x,this.position.y,z)); 
 
         // Scale to maximum speed
