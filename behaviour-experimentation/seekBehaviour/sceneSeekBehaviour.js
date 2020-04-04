@@ -7,11 +7,15 @@ var scene = null;
 var pursuerCreated = false;
 var pursuers = []
 var paramsGUI = [
-    { name: "maxSpeed", anim: 15, weight: 15 }
+    { name: "maxSpeed", anim: 15, weight: 15 },
+    { name: "maxForce", anim: 30, weight: 30 },
+    { name: "mass", anim: 200, weight: 200 }
 ]
 
 var paramsPursuer = {
-    "maxSpeed": paramsGUI[0].anim
+    "maxSpeed": paramsGUI[0].anim,
+    "maxForce" : paramsGUI[1].anim,
+    "mass" : paramsGUI[2].anim
 }
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
@@ -77,9 +81,11 @@ var createScene = function () {
         slider.onValueChangedObservable.add((v) => {
             param.anim = v * param.weight;
             paramsPursuer = {
-                "maxSpeed": paramsGUI[0].anim
+                "maxSpeed": paramsGUI[0].anim,
+                "maxForce": paramsGUI[1].anim,
+                "mass": paramsGUI[2].anim
             }
-            header.text = param.name + ":" + param.anim;
+            header.text = param.name + ":" + param.anim.toFixed(2);
         })
     });
 
@@ -134,14 +140,26 @@ var createScene = function () {
         target.position.x = Math.cos( time/25 ) * Math.sin( (time/25) * 0.8 ) * radius;
         target.position.z = Math.sin( (time/25) * 0.5 ) * radius;
         
+        
         if (pursuerCreated === true) {
             pursuers.forEach(p => {
                 p.maxSpeed = paramsPursuer["maxSpeed"]
+                p.maxForce = paramsPursuer["maxForce"]
+                p.mass =  paramsPursuer["mass"]
+                
             });
             for (let i = 0; i < pursuers.length; i++) {
+                // angle of rotation of velocity
+                var heading = (pursuers[i].velocity.clone()).normalize()
+                let angleRotation = Math.atan2(heading.z, -heading.x) 
+
+                
+                pursuers[i].mesh.rotation.x = Math.PI / 2;
+                pursuers[i].mesh.rotation.z = Math.PI / 2;
+                pursuers[i].mesh.rotation.y = angleRotation
                 pursuers[i].run(target)
-                pursuers[i].facePoint(target.position)
                 pursuers[i].update()
+                console.log()
             }
         }
         time+=1
