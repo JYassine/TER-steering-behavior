@@ -1,4 +1,5 @@
 import SeekBehaviour from "./SeekBehaviour.js";
+import DecorBehaviour from "../DecorBehaviour.js";
 
 var canvas = document.getElementById("renderCanvas");
 
@@ -6,16 +7,28 @@ var engine = null;
 var scene = null;
 var pursuerCreated = false;
 var pursuers = []
+var checkboxGUI = []
+var colorVectors = {
+    "red": new BABYLON.Color3(1, 0, 0),
+    "yellow": new BABYLON.Color3(1, 1, 0),
+    "blue": new BABYLON.Color3(0, 0, 1)
+}
+var decorVectors = {
+    "maxSpeed": [],
+    "maxForce": [],
+    "velocity": []
+}
 var paramsGUI = [
     { name: "maxSpeed", anim: 15, weight: 15 },
-    { name: "maxForce", anim: 30, weight: 30 },
+    { name: "steeringForce", anim: 30, weight: 30 },
     { name: "mass", anim: 200, weight: 200 }
 ]
 
+
 var paramsPursuer = {
     "maxSpeed": paramsGUI[0].anim,
-    "maxForce" : paramsGUI[1].anim,
-    "mass" : paramsGUI[2].anim
+    "steeringForce": paramsGUI[1].anim,
+    "mass": paramsGUI[2].anim
 }
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
@@ -47,7 +60,7 @@ var createScene = function () {
     /** Target */
     var target = BABYLON.MeshBuilder.CreateBox("myBox", { height: 60, width: 60, depth: 60 }, scene);
     target.position.y = 25
-    target.material=materialShip
+    target.material = materialShip
 
     //UI
 
@@ -82,12 +95,87 @@ var createScene = function () {
             param.anim = v * param.weight;
             paramsPursuer = {
                 "maxSpeed": paramsGUI[0].anim,
-                "maxForce": paramsGUI[1].anim,
+                "steeringForce": paramsGUI[1].anim,
                 "mass": paramsGUI[2].anim
             }
             header.text = param.name + ":" + param.anim.toFixed(2);
         })
     });
+
+
+    // GUI VISUALIZATION OF VECTORS
+
+    var vectorsHeader = new BABYLON.GUI.TextBlock();
+    vectorsHeader.text = "SHOW VECTORS "
+    vectorsHeader.height = "70px"
+    vectorsHeader.marginRight = "5px";
+    vectorsHeader.fontWeight = "bold"
+    vectorsHeader.color = "yellow";
+    vectorsHeader.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+
+    UiPanel.addControl(vectorsHeader);
+
+    let i = 0;
+    for (var vectorName in decorVectors) {
+
+        var checkbox = new BABYLON.GUI.Checkbox();
+        checkbox.width = "30px";
+        checkbox.height = "30px";
+        checkbox.name = vectorName
+        checkbox.isChecked = false;
+        checkbox.color = Object.keys(colorVectors)[i];
+        checkbox.isEnabled = false;
+
+        checkbox.onIsCheckedChangedObservable.add(function (value) {
+            if (value) {
+                checkboxGUI.forEach(child => {
+                    if (child.isChecked) {
+                        if (decorVectors[child.name].length > 0) {
+                            decorVectors[child.name].forEach(v => {
+                                v.meshVisualization.isVisible = true
+                            })
+                        }
+                    }
+                })
+
+            } else {
+                checkboxGUI.forEach(child => {
+                    if (child.isChecked === false) {
+                        if (decorVectors[child.name].length > 0) {
+                            decorVectors[child.name].forEach(v => {
+                                v.meshVisualization.isVisible = false
+                            })
+                        }
+                    }
+                })
+
+            }
+        });
+
+        var vectorText = new BABYLON.GUI.TextBlock();
+        vectorText.text = vectorName
+        vectorText.height = "20px"
+        vectorText.marginRight = "5px";
+        vectorText.fontWeight = "bold"
+        vectorText.color = Object.keys(colorVectors)[i]
+        vectorText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+
+
+        UiPanel.addControl(checkbox);
+        UiPanel.addControl(vectorText);
+        checkboxGUI.push(checkbox)
+        i++;
+
+    }
+
+
+
+
+
+
+
 
     /** ADD BUTTON TO CREATE NEW PURSUERS */
 
@@ -109,8 +197,30 @@ var createScene = function () {
 
         /** Seek behaviour */
         var seekBehaviour = new SeekBehaviour(pursuer)
+        var decorMaxSpeed = new DecorBehaviour(seekBehaviour.mesh)
+        var decorMaxForce = new DecorBehaviour(seekBehaviour.mesh)
+        var decorVelocity = new DecorBehaviour(seekBehaviour.mesh)
+        decorMaxSpeed.createVector(100, colorVectors[Object.keys(colorVectors)[0]], scene)
+        decorMaxForce.createVector(100, colorVectors[Object.keys(colorVectors)[1]], scene)
+        decorVelocity.createVector(100, colorVectors[Object.keys(colorVectors)[2]], scene)
+        decorVectors["maxSpeed"].push(decorMaxSpeed)
+        decorVectors["maxForce"].push(decorMaxForce)
+        decorVectors["velocity"].push(decorVelocity)
         pursuers.push(seekBehaviour)
         pursuerCreated = true
+
+        checkboxGUI.forEach(child => {
+            child.isEnabled = true
+            checkboxGUI.forEach(child => {
+                if (child.isChecked) {
+                    if (decorVectors[child.name].length > 0) {
+                        decorVectors[child.name].forEach(v => {
+                            v.meshVisualization.isVisible = true
+                        })
+                    }
+                }
+            })
+        })
 
     });
 
@@ -125,8 +235,24 @@ var createScene = function () {
         pursuers.forEach(p => {
             p.getMesh().dispose()
         });
+        for (var decorVector in decorVectors) {
+            decorVectors[decorVector].forEach(dc => {
+                dc.meshVisualization.dispose()
+            })
+        }
         pursuers = []
+        decorVectors = {
+            "maxSpeed": [],
+            "maxForce": [],
+            "velocity": []
+        }
         pursuerCreated = false
+        checkboxGUI.forEach(child => {
+            if (child.isEnabled === true) {
+                child.isEnabled = false
+                child.isChecked = false
+            }
+        })
     });
 
 
@@ -134,35 +260,50 @@ var createScene = function () {
     UiPanel.addControl(buttonStop);
 
 
-    var time=0;
-    var radius=300
+
+
+
+
+    //UPDATE PURSUERS
+    var time = 0;
+    var radius = 300
     scene.registerAfterRender(function () {
-        target.position.x = Math.cos( time/25 ) * Math.sin( (time/25) * 0.8 ) * radius;
-        target.position.z = Math.sin( (time/25) * 0.5 ) * radius;
-        
-        
+        target.position.x = Math.cos(time / 25) * Math.sin((time / 25) * 0.8) * radius;
+        target.position.z = Math.sin((time / 25) * 0.5) * radius;
+
+
         if (pursuerCreated === true) {
             pursuers.forEach(p => {
                 p.maxSpeed = paramsPursuer["maxSpeed"]
-                p.maxForce = paramsPursuer["maxForce"]
-                p.mass =  paramsPursuer["mass"]
-                
+                p.maxForce = paramsPursuer["steeringForce"]
+                p.mass = paramsPursuer["mass"]
+
             });
             for (let i = 0; i < pursuers.length; i++) {
-                // angle of rotation of velocity
-                var heading = (pursuers[i].velocity.clone()).normalize()
-                let angleRotation = Math.atan2(heading.z, -heading.x) 
 
-                
+                var directionRotation = (pursuers[i].velocity.clone()).normalize()
+                directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
+
+                // Update the pursuer
+
                 pursuers[i].mesh.rotation.x = Math.PI / 2;
                 pursuers[i].mesh.rotation.z = Math.PI / 2;
-                pursuers[i].mesh.rotation.y = angleRotation
+                pursuers[i].mesh.rotation.y = directionRotation
                 pursuers[i].run(target)
                 pursuers[i].update()
-                console.log()
+
+                //Update the visualization of vectors
+                decorVectors["maxSpeed"][i].update(pursuers[i].desired)
+                decorVectors["maxForce"][i].update(pursuers[i].steer)
+                decorVectors["velocity"][i].update(pursuers[i].velocity)
+
             }
+
+
+
+
         }
-        time+=1
+        time += 1
 
     });
 

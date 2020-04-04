@@ -1,12 +1,12 @@
 import Behaviour from "../Behaviour.js";
-import Utilities from "../Utilities.js";
 
 export default class SeekBehaviour extends Behaviour {
 
     constructor(mesh) {
         super(mesh)
-        this.desired = undefined
+        this.desired = new BABYLON.Vector3(0, 0, 0)
         this.velocity = new BABYLON.Vector3(-0.2, 0, 0)
+        this.steer=new BABYLON.Vector3(0,0,0)
         this.maxForce = 0
     }
 
