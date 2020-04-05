@@ -1,43 +1,39 @@
 import Behaviour from "../Behaviour.js";
-import Utilities from "../Utilities.js";
 
 export default class WanderBehaviour extends Behaviour{
 
     constructor(mesh){
         super(mesh);
         this.wanderCenter=0;
-        this.wanderDistance=new BABYLON.Vector3(-1,0,-2);
-        this.wanderRadius=new BABYLON.Vector3(-1.2,0,-1.2);
-        this.wanderAngle=0;
+        this.wanderDistance=0
+        this.wanderRadius=0
+        this.wanderAngle=1;
         this.wanderForce= new BABYLON.Vector3(0,0,0)
-        this.displacement=new BABYLON.Vector3(0,0,0)
+        this.displacement=new BABYLON.Vector3(1,0,1)
+        this.random = 8;
         
         
     }
 
-    updateParameters(wanderDistance,wanderRadius){
-        this.wanderRadius= new BABYLON.Vector3(wanderRadius,wanderRadius,wanderRadius)
-        this.wanderDistance= new BABYLON.Vector3(wanderDistance,wanderRadius,wanderDistance)
-        
-    }
-
-    setAngle = function(value) {
-        this.displacement.x = Math.cos(value) * Utilities.getMagnitude(this.displacement);
-        this.displacement.z = Math.sin(value) * Utilities.getMagnitude(this.displacement);
-    }
 
     run(target) {
+
         this.wanderCenter = new BABYLON.Vector3(this.velocity.x,this.velocity.y,this.velocity.z);
         this.wanderCenter.normalize();
-        this.wanderCenter.multiplyInPlace(this.wanderDistance);
+        var wanderCenterScaled = this.wanderCenter.scale(this.wanderDistance)
+        this.wanderCenter=wanderCenterScaled;
+
+        const randomAngle = (Math.random() * 3 - 1) * this.random;
+        const angle = (this.wanderAngle + randomAngle) + Math.PI;
+        this.wanderAngle = angle;
+        
+        this.displacement.x = Math.cos((Math.PI / 180) * this.wanderAngle) ;
+        this.displacement.z = Math.sin((Math.PI / 180) * this.wanderAngle) ;
 
         
-        this.displacement = new BABYLON.Vector3(-1.1, 0,-0.8)
-        this.displacement.multiplyInPlace(this.wanderRadius);
-
-        this.setAngle(this.wanderAngle);
-        this.wanderAngle += Utilities.getRandom(-1,3);
-        this.wanderForce = this.wanderCenter.addInPlace(this.displacement);
+        var displacementScaled = this.displacement.scale(this.wanderRadius)
+        this.displacement=displacementScaled
+        this.wanderForce = this.wanderCenter.add(this.displacement);
         this.applyForce(this.wanderForce);
         
     

@@ -1,4 +1,5 @@
 import WanderBehaviour from "./WanderBehaviour.js";
+import DecorBehaviour from "../DecorBehaviour.js";
 
 var canvas = document.getElementById("renderCanvas");
 
@@ -6,11 +7,17 @@ var engine = null;
 var scene = null;
 var pursuerCreated = false;
 var materialShip;
+var circlesWanders = []
 var pursuers = []
 var ground;
 var target;
+
+var decorVectors = {
+    "distance": [],
+    "radius": []
+}
 var paramsGUI = [
-    { name: "distance", anim: 2, weight: 2 },
+    { name: "distance", anim: 10, weight: 10 },
     { name: "radius", anim: 2, weight: 2 }
 ]
 
@@ -19,6 +26,19 @@ var paramsPursuer = {
     "radius": paramsGUI[1].anim
 
 }
+
+var createCircleWanders = () => {
+
+    var circle = BABYLON.MeshBuilder.CreateCylinder("cone", { diameter: 100, tessellation: 50 }, scene);
+
+    var materialCircle = new BABYLON.StandardMaterial("shiptx1", scene);
+    materialCircle.diffuseColor = new BABYLON.Color3(0, 1, 0); //green
+    circle.material = materialCircle
+
+    circlesWanders.push(circle)
+
+}
+
 
 
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
@@ -50,7 +70,6 @@ var createScene = function () {
 
 
     //UI
-
     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     var UiPanel = new BABYLON.GUI.StackPanel();
     UiPanel.width = "220px";
@@ -79,12 +98,12 @@ var createScene = function () {
         slider.width = "205px";
         UiPanel.addControl(slider);
         slider.onValueChangedObservable.add((v) => {
-            param.anim = v * (-param.weight);
+            param.anim = v * (param.weight);
             paramsPursuer = {
                 "distance": paramsGUI[0].anim,
                 "radius": paramsGUI[1].anim
             }
-            header.text = param.name + ":" + -(param.anim);
+            header.text = param.name + ":" + (param.anim);
         })
     });
 
@@ -99,14 +118,23 @@ var createScene = function () {
 
     buttonPursuer.onPointerDownObservable.add(function () {
 
-        var pursuer = BABYLON.MeshBuilder.CreateBox("myBox", { height: 40, width: 40, depth: 40 }, scene);
+        var pursuer = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
+        pursuer.scaling = new BABYLON.Vector3(20, 20, 20)
         pursuer.material = materialShip;
         pursuer.checkCollisions = true
         pursuer.position.y = 20
-        pursuer.position.x += 100
+
+        
+        createCircleWanders()
 
         /** Seek behaviour */
         var wanderBehaviour = new WanderBehaviour(pursuer)
+        var decorDistance = new DecorBehaviour(wanderBehaviour.position)
+        var decorRadius = new DecorBehaviour(circlesWanders[circlesWanders.length-1].position)
+        decorDistance.createVector(100, new BABYLON.Color3(1, 0, 0), scene, true)
+        decorRadius.createVector(100, new BABYLON.Color3(0, 0, 1), scene, true)
+        decorVectors["distance"].push(decorDistance)
+        decorVectors["radius"].push(decorRadius)
         pursuers.push(wanderBehaviour)
         pursuerCreated = true
 
@@ -136,11 +164,33 @@ var createScene = function () {
 
         if (pursuerCreated === true) {
             pursuers.forEach(p => {
-                p.updateParameters(paramsPursuer["distance"], paramsPursuer["radius"])
+                p.wanderRadius = paramsPursuer["radius"]
+                p.wanderDistance = paramsPursuer["distance"]
             });
             for (let i = 0; i < pursuers.length; i++) {
+                var directionRotation = (pursuers[i].velocity.clone()).normalize()
+                directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
+
+                // Update the pursuer
+
+                pursuers[i].mesh.rotation.x = Math.PI / 2;
+                pursuers[i].mesh.rotation.z = Math.PI / 2;
+                pursuers[i].mesh.rotation.y = directionRotation
                 pursuers[i].run(target)
                 pursuers[i].update()
+
+                //Update the visualization of vectors
+                decorVectors["distance"][i].update(pursuers[i].wanderCenter)
+                var directionRotationCenter = (pursuers[i].wanderCenter.clone()).normalize()
+                directionRotationCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
+
+                circlesWanders[i].position = pursuers[i].wanderCenter.clone().add(pursuers[i].position.clone())
+                circlesWanders[i].locallyTranslate(new BABYLON.Vector3(-28*(paramsPursuer["distance"]), 0, 0))
+                circlesWanders[i].rotation.y = directionRotation
+
+                decorVectors["radius"][i].origin = circlesWanders[i].position.clone()
+                decorVectors["radius"][i].origin.y+=5
+                decorVectors["radius"][i].update(pursuers[i].displacement)
             }
         }
         time += 1

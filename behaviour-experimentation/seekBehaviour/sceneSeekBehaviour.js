@@ -171,14 +171,7 @@ var createScene = function () {
     }
 
 
-
-
-
-
-
-
-    /** ADD BUTTON TO CREATE NEW PURSUERS */
-
+    /** ADD BUTTON TO CREATE AND STOP NEW PURSUERS */
     var buttonPursuer = BABYLON.GUI.Button.CreateSimpleButton("but0", "Start new pursuers");
     buttonPursuer.paddingTop = "10px";
     buttonPursuer.width = "200px";
@@ -197,9 +190,9 @@ var createScene = function () {
 
         /** Seek behaviour */
         var seekBehaviour = new SeekBehaviour(pursuer)
-        var decorMaxSpeed = new DecorBehaviour(seekBehaviour.mesh)
-        var decorMaxForce = new DecorBehaviour(seekBehaviour.mesh)
-        var decorVelocity = new DecorBehaviour(seekBehaviour.mesh)
+        var decorMaxSpeed = new DecorBehaviour(seekBehaviour.mesh.position)
+        var decorMaxForce = new DecorBehaviour(seekBehaviour.mesh.position)
+        var decorVelocity = new DecorBehaviour(seekBehaviour.mesh.position)
         decorMaxSpeed.createVector(100, colorVectors[Object.keys(colorVectors)[0]], scene)
         decorMaxForce.createVector(100, colorVectors[Object.keys(colorVectors)[1]], scene)
         decorVelocity.createVector(100, colorVectors[Object.keys(colorVectors)[2]], scene)
@@ -261,9 +254,7 @@ var createScene = function () {
 
 
 
-
-
-
+    
     //UPDATE PURSUERS
     var time = 0;
     var radius = 300
@@ -280,12 +271,10 @@ var createScene = function () {
 
             });
             for (let i = 0; i < pursuers.length; i++) {
-
                 var directionRotation = (pursuers[i].velocity.clone()).normalize()
                 directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
 
                 // Update the pursuer
-
                 pursuers[i].mesh.rotation.x = Math.PI / 2;
                 pursuers[i].mesh.rotation.z = Math.PI / 2;
                 pursuers[i].mesh.rotation.y = directionRotation
