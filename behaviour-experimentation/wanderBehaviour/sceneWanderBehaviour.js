@@ -8,6 +8,16 @@ var scene = null;
 var pursuerCreated = false;
 var materialShip;
 var circlesWanders = []
+var colorVectors = {
+    "red": new BABYLON.Color3(1, 0, 0),
+    "yellow": new BABYLON.Color3(1, 1, 0),
+    "blue": new BABYLON.Color3(0, 0, 1)
+}
+var decorVectors = {
+    "distance": [],
+    "radius": []
+}
+var checkboxGUI = []
 var pursuers = []
 var ground;
 var target;
@@ -126,17 +136,28 @@ var createScene = function () {
 
         
         createCircleWanders()
-
         /** Seek behaviour */
         var wanderBehaviour = new WanderBehaviour(pursuer)
         var decorDistance = new DecorBehaviour(wanderBehaviour.position)
         var decorRadius = new DecorBehaviour(circlesWanders[circlesWanders.length-1].position)
-        decorDistance.createVector(100, new BABYLON.Color3(1, 0, 0), scene, true)
-        decorRadius.createVector(100, new BABYLON.Color3(0, 0, 1), scene, true)
+        decorDistance.createVector(100, new BABYLON.Color3(1, 0, 0), scene, false)
+        decorRadius.createVector(100, new BABYLON.Color3(0, 0, 1), scene, false)
         decorVectors["distance"].push(decorDistance)
         decorVectors["radius"].push(decorRadius)
         pursuers.push(wanderBehaviour)
         pursuerCreated = true
+        checkboxGUI.forEach(child => {
+            child.isEnabled = true
+            checkboxGUI.forEach(child => {
+                if (child.isChecked) {
+                    if (decorVectors[child.name].length > 0) {
+                        decorVectors[child.name].forEach(v => {
+                            v.meshVisualization.isVisible = true
+                        })
+                    }
+                }
+            })
+        })
 
     });
 
@@ -151,9 +172,89 @@ var createScene = function () {
         pursuers.forEach(p => {
             p.getMesh().dispose()
         });
+        for (var decorVector in decorVectors) {
+            decorVectors[decorVector].forEach(dc => {
+                dc.meshVisualization.dispose()
+            })
+        }
         pursuers = []
+        decorVectors = {
+            "distance": [],
+            "radius": []
+        }
         pursuerCreated = false
+        checkboxGUI.forEach(child => {
+            if (child.isEnabled === true) {
+                child.isEnabled = false
+                child.isChecked = false
+            }
+        })
     });
+
+    var vectorsHeader = new BABYLON.GUI.TextBlock();
+    vectorsHeader.text = "SHOW VECTORS "
+    vectorsHeader.height = "70px"
+    vectorsHeader.marginRight = "5px";
+    vectorsHeader.fontWeight = "bold"
+    vectorsHeader.color = "yellow";
+    vectorsHeader.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+
+    UiPanel.addControl(vectorsHeader);
+
+    let i = 0;
+    for (var vectorName in decorVectors) {
+
+        var checkbox = new BABYLON.GUI.Checkbox();
+        checkbox.width = "30px";
+        checkbox.height = "30px";
+        checkbox.name = vectorName
+        checkbox.isChecked = false;
+        checkbox.color = Object.keys(colorVectors)[i];
+        checkbox.isEnabled = false;
+
+        checkbox.onIsCheckedChangedObservable.add(function (value) {
+            if (value) {
+                checkboxGUI.forEach(child => {
+                    if (child.isChecked) {
+                        if (decorVectors[child.name].length > 0) {
+                            decorVectors[child.name].forEach(v => {
+                                v.meshVisualization.isVisible = true
+                            })
+                        }
+                    }
+                })
+
+            } else {
+                checkboxGUI.forEach(child => {
+                    if (child.isChecked === false) {
+                        if (decorVectors[child.name].length > 0) {
+                            decorVectors[child.name].forEach(v => {
+                                v.meshVisualization.isVisible = false
+                            })
+                        }
+                    }
+                })
+
+            }
+        });
+
+        var vectorText = new BABYLON.GUI.TextBlock();
+        vectorText.text = vectorName
+        vectorText.height = "20px"
+        vectorText.marginRight = "5px";
+        vectorText.fontWeight = "bold"
+        vectorText.color = Object.keys(colorVectors)[i]
+        vectorText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+
+
+        UiPanel.addControl(checkbox);
+        UiPanel.addControl(vectorText);
+        checkboxGUI.push(checkbox)
+        i++;
+
+    }
 
 
     UiPanel.addControl(buttonPursuer);
