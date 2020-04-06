@@ -9,6 +9,7 @@ export default class Behaviour {
         this.maxSpeed = 2
         this.maxForce = 0.1
         this.mass = 10
+        this.name="Heinsenberg"
 
     }
 
