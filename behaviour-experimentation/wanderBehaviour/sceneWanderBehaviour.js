@@ -10,7 +10,6 @@ var materialShip;
 var circlesWanders = []
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
-    "yellow": new BABYLON.Color3(1, 1, 0),
     "blue": new BABYLON.Color3(0, 0, 1)
 }
 var decorVectors = {
@@ -44,6 +43,8 @@ var createCircleWanders = () => {
     var materialCircle = new BABYLON.StandardMaterial("shiptx1", scene);
     materialCircle.diffuseColor = new BABYLON.Color3(0, 1, 0); //green
     circle.material = materialCircle
+
+    circle.isVisible=false;
 
     circlesWanders.push(circle)
 
@@ -151,9 +152,14 @@ var createScene = function () {
             checkboxGUI.forEach(child => {
                 if (child.isChecked) {
                     if (decorVectors[child.name].length > 0) {
-                        decorVectors[child.name].forEach(v => {
-                            v.meshVisualization.isVisible = true
-                        })
+                        for(let i=0;i<decorVectors[child.name].length;i++){
+                            if(child.name==="radius") {
+                                circlesWanders[i].isVisible=true;
+                            }
+                            decorVectors[child.name][i].meshVisualization.isVisible = true
+                           
+                        }
+                       
                     }
                 }
             })
@@ -177,7 +183,11 @@ var createScene = function () {
                 dc.meshVisualization.dispose()
             })
         }
+        circlesWanders.forEach(circle=>{
+            circle.dispose()
+        })
         pursuers = []
+        circlesWanders=[]
         decorVectors = {
             "distance": [],
             "radius": []
@@ -217,10 +227,12 @@ var createScene = function () {
             if (value) {
                 checkboxGUI.forEach(child => {
                     if (child.isChecked) {
-                        if (decorVectors[child.name].length > 0) {
-                            decorVectors[child.name].forEach(v => {
-                                v.meshVisualization.isVisible = true
-                            })
+                        for(let i=0;i<decorVectors[child.name].length;i++){
+                            if(child.name==="radius") {
+                                circlesWanders[i].isVisible=true;
+                            }
+                            decorVectors[child.name][i].meshVisualization.isVisible = true
+                           
                         }
                     }
                 })
@@ -228,10 +240,12 @@ var createScene = function () {
             } else {
                 checkboxGUI.forEach(child => {
                     if (child.isChecked === false) {
-                        if (decorVectors[child.name].length > 0) {
-                            decorVectors[child.name].forEach(v => {
-                                v.meshVisualization.isVisible = false
-                            })
+                        for(let i=0;i<decorVectors[child.name].length;i++){
+                            if(child.name==="radius") {
+                                circlesWanders[i].isVisible=false;
+                            }
+                            decorVectors[child.name][i].meshVisualization.isVisible = false
+                           
                         }
                     }
                 })
