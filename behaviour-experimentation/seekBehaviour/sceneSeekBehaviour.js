@@ -9,6 +9,7 @@ var pursuerCreated = false;
 var selectedEntity = false;
 var pursuers = []
 var checkboxGUI = []
+var namesPursuers = [];
 var UiPanelSelection;
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
@@ -45,6 +46,18 @@ var paramsPursuerSelection = {
     "steeringForce": paramsGUI[1].anim,
     "mass": paramsGUI[2].anim
 }
+
+var makeTextPlane = function (text, color, size) {
+    var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
+    dynamicTexture.hasAlpha = true;
+    dynamicTexture.drawText(text, 0, 40, "bold 36px Arial", color, "transparent", true);
+    var plane = new BABYLON.Mesh.CreatePlane("TextPlane", size, scene, true);
+    plane.material = new BABYLON.StandardMaterial("TextPlaneMaterial", scene);
+    plane.material.backFaceCulling = false;
+    plane.material.specularColor = new BABYLON.Color3(0, 0, 0);
+    plane.material.diffuseTexture = dynamicTexture;
+    return plane;
+};
 
 
 
@@ -194,16 +207,16 @@ var createScene = function () {
 
     }
 
-    
+
     /** ADD BUTTON TO CREATE AND STOP NEW PURSUERS */
-    
+
     var buttonSelect = BABYLON.GUI.Button.CreateSimpleButton("buttonSelect", "Select pursuers");
     buttonSelect.paddingTop = "10px";
     buttonSelect.width = "100px";
     buttonSelect.height = "100px";
     buttonSelect.color = "white";
     buttonSelect.background = "orange";
-    buttonSelect.isEnabled=false;
+    buttonSelect.isEnabled = false;
 
 
     var buttonPursuer = BABYLON.GUI.Button.CreateSimpleButton("but0", "Start new pursuers");
@@ -228,6 +241,13 @@ var createScene = function () {
         seekBehaviour.maxForce = paramsPursuer["steeringForce"]
         seekBehaviour.mass = paramsPursuer["mass"]
 
+        
+        var xChar = makeTextPlane(seekBehaviour.name, "red", 70);
+        xChar.position = seekBehaviour.position.clone()
+        xChar.position.y+=10;
+
+        namesPursuers.push(xChar);
+
 
         //Vector of seek behaviours
         var decorMaxSpeed = new DecorBehaviour(seekBehaviour.mesh.position)
@@ -243,7 +263,7 @@ var createScene = function () {
 
         pursuers.push(seekBehaviour)
         pursuerCreated = true
-        buttonSelect.isEnabled=true;
+        buttonSelect.isEnabled = true;
 
         //Update the checkbox GUI 
         checkboxGUI.forEach(child => {
@@ -299,104 +319,103 @@ var createScene = function () {
             entity.mesh.actionManager = new BABYLON.ActionManager(scene);
             entity.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, function (ev) {
 
-                    if(UiPanelSelection!==undefined){
-                        UiPanelSelection.dispose();
-                        UiPanelSelection=undefined;
-                        
-                    }
+                if (UiPanelSelection !== undefined) {
+                    UiPanelSelection.dispose();
+                    UiPanelSelection = undefined;
 
-                    //UI SELECTION 
-                    UiPanelSelection = new BABYLON.GUI.StackPanel();
-                    UiPanelSelection.width = "220px";
-                    UiPanelSelection.fontSize = "14px";
-                    UiPanelSelection.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-                    UiPanelSelection.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                }
 
-                    advancedTexture.addControl(UiPanelSelection);
+                //UI SELECTION 
+                UiPanelSelection = new BABYLON.GUI.StackPanel();
+                UiPanelSelection.width = "220px";
+                UiPanelSelection.fontSize = "14px";
+                UiPanelSelection.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                UiPanelSelection.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
-                    var inputName = new BABYLON.GUI.InputText();
-                    inputName.width = 0.2;
-                    inputName.maxWidth = 0.2;
+                advancedTexture.addControl(UiPanelSelection);
 
-                    inputName.height = "50px";
-                    inputName.width = "100px";
-                    inputName.paddingTop = "10px";
+                var inputName = new BABYLON.GUI.InputText();
+                inputName.width = 0.2;
+                inputName.maxWidth = 0.2;
 
-                    inputName.text = entity.name
-                    inputName.color = "orange";
-                    inputName.background = "grey";
+                inputName.height = "50px";
+                inputName.width = "100px";
+                inputName.paddingTop = "10px";
 
-                    inputName.verticalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-                    UiPanelSelection.addControl(inputName);
+                inputName.text = entity.name
+                inputName.color = "orange";
+                inputName.background = "grey";
 
-                    paramsGUISelection.forEach((param) => {
+                inputName.verticalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                UiPanelSelection.addControl(inputName);
 
-                        var header = new BABYLON.GUI.TextBlock();
-                        header.text = param.name + ":" + param.anim
-                        header.height = "30px";
-                        header.color = "yellow";
-                        header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-                        header.paddingTop = "10px";
+                paramsGUISelection.forEach((param) => {
 
-                        UiPanelSelection.addControl(header);
+                    var header = new BABYLON.GUI.TextBlock();
+                    header.text = param.name + ":" + param.anim
+                    header.height = "30px";
+                    header.color = "yellow";
+                    header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                    header.paddingTop = "10px";
 
-                        var slider = new BABYLON.GUI.Slider();
+                    UiPanelSelection.addControl(header);
 
-                        slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-                        slider.minimum = 0;
-                        slider.maximum = 1;
-                        slider.color = "green";
-                        slider.value = param.anim;
-                        slider.height = "20px";
-                        slider.width = "205px";
-                        UiPanelSelection.addControl(slider);
-                        slider.onValueChangedObservable.add((v) => {
-                            param.anim = v * param.weight;
-                            paramsPursuerSelection = {
-                                "maxSpeed": paramsGUISelection[0].anim,
-                                "steeringForce": paramsGUISelection[1].anim,
-                                "mass": paramsGUISelection[2].anim
-                            }
-                            header.text = param.name + ":" + param.anim.toFixed(2);
-                            
-                            entity.maxSpeed = paramsPursuerSelection["maxSpeed"]
-                            entity.maxForce = paramsPursuerSelection["steeringForce"]
-                            entity.mass = paramsPursuerSelection["mass"]
-                        })
+                    var slider = new BABYLON.GUI.Slider();
 
+                    slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+                    slider.minimum = 0;
+                    slider.maximum = 1;
+                    slider.color = "green";
+                    slider.value = param.anim;
+                    slider.height = "20px";
+                    slider.width = "205px";
+                    UiPanelSelection.addControl(slider);
+                    slider.onValueChangedObservable.add((v) => {
+                        param.anim = v * param.weight;
+                        paramsPursuerSelection = {
+                            "maxSpeed": paramsGUISelection[0].anim,
+                            "steeringForce": paramsGUISelection[1].anim,
+                            "mass": paramsGUISelection[2].anim
+                        }
+                        header.text = param.name + ":" + param.anim.toFixed(2);
 
-                    });
+                        entity.maxSpeed = paramsPursuerSelection["maxSpeed"]
+                        entity.maxForce = paramsPursuerSelection["steeringForce"]
+                        entity.mass = paramsPursuerSelection["mass"]
+                    })
 
 
-                    var buttonDone = BABYLON.GUI.Button.CreateSimpleButton("buttonDone", "DONE");
-                    buttonDone.paddingTop = "10px";
-                    buttonDone.width = "50px";
-                    buttonDone.height = "50px";
-                    buttonDone.color = "white";
-                    buttonDone.background = "green";
-
-                    UiPanelSelection.addControl(buttonDone);
-
-                    buttonDone.onPointerDownObservable.add(function () {
-
-                        selectedEntity = false
-                        UiPanelSelection.dispose()
-                        UiPanelSelection = undefined
+                });
 
 
-                        var materialSelected = new BABYLON.StandardMaterial("selectedEntity", scene);
-                        materialSelected.diffuseColor = new BABYLON.Color3(1, 0, 0);
+                var buttonDone = BABYLON.GUI.Button.CreateSimpleButton("buttonDone", "DONE");
+                buttonDone.paddingTop = "10px";
+                buttonDone.width = "50px";
+                buttonDone.height = "50px";
+                buttonDone.color = "white";
+                buttonDone.background = "green";
 
-                        pursuers.forEach(p => {
-                            p.mesh.material = materialSelected
+                UiPanelSelection.addControl(buttonDone);
 
-                        })
+                buttonDone.onPointerDownObservable.add(function () {
+
+                    selectedEntity = false
+                    UiPanelSelection.dispose()
+                    UiPanelSelection = undefined
 
 
-                    });
+                    var materialSelected = new BABYLON.StandardMaterial("selectedEntity", scene);
+                    materialSelected.diffuseColor = new BABYLON.Color3(1, 0, 0);
+
+                    pursuers.forEach(p => {
+                        p.mesh.material = materialSelected
+                        entity.name=inputName.text
+
+                    })
+                });
 
 
-                
+
 
             }));
         });
@@ -423,7 +442,7 @@ var createScene = function () {
     UiPanel.addControl(buttonStop);
 
 
-    
+
 
 
 
@@ -445,6 +464,16 @@ var createScene = function () {
                 pursuers[i].mesh.rotation.y = directionRotation
                 pursuers[i].run(target)
                 pursuers[i].update()
+
+                //Update name position
+
+                namesPursuers[i].dispose()
+                namesPursuers[i] = makeTextPlane(pursuers[i].name, "red", 70);
+                namesPursuers[i].position= pursuers[i].position.clone()
+                namesPursuers[i].position.y+=10
+                
+                
+                namesPursuers[i].rotation.y = directionRotation
 
                 //Update the visualization of vectors
                 decorVectors["maxSpeed"][i].update(pursuers[i].desired)
