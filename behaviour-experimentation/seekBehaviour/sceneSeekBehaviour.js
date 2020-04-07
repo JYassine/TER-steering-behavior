@@ -1,5 +1,6 @@
 import SeekBehaviour from "./SeekBehaviour.js";
 import DecorBehaviour from "../DecorBehaviour.js";
+import GUI from "../GUI.js"
 
 var canvas = document.getElementById("renderCanvas");
 
@@ -9,8 +10,13 @@ var pursuerCreated = false;
 var selectedEntity = false;
 var pursuers = []
 var checkboxGUI = []
+var buttonStart;
+var buttonSelect;
+var buttonStop;
 var namesPursuers = [];
 var UiPanelSelection;
+var UiPanel;
+var advancedTexture;
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "yellow": new BABYLON.Color3(1, 1, 0),
@@ -23,31 +29,11 @@ var decorVectors = {
 }
 var paramsGUI = [
     { name: "maxSpeed", anim: 15, weight: 15 },
-    { name: "steeringForce", anim: 30, weight: 30 },
+    { name: "maxForce", anim: 30, weight: 30 },
     { name: "mass", anim: 200, weight: 200 }
 ]
 
-
-var paramsPursuer = {
-    "maxSpeed": paramsGUI[0].anim,
-    "steeringForce": paramsGUI[1].anim,
-    "mass": paramsGUI[2].anim
-}
-
-var paramsGUISelection = [
-    { name: "maxSpeed", anim: 15, weight: 15 },
-    { name: "steeringForce", anim: 30, weight: 30 },
-    { name: "mass", anim: 200, weight: 200 }
-]
-
-
-var paramsPursuerSelection = {
-    "maxSpeed": paramsGUI[0].anim,
-    "steeringForce": paramsGUI[1].anim,
-    "mass": paramsGUI[2].anim
-}
-
-var makeTextPlane = function (text, color, size) {
+var createText = function (text, color, size) {
     var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
     dynamicTexture.hasAlpha = true;
     dynamicTexture.drawText(text, 0, 40, "bold 36px Arial", color, "transparent", true);
@@ -64,24 +50,12 @@ var makeTextPlane = function (text, color, size) {
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
 
-    // This creates a basic Babylon Scene object (non-mesh)
     var scene = new BABYLON.Scene(engine);
-
-    // This creates and positions a free camera (non-mesh)
     var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(100, 200, 600), scene);
-
-    // This targets the camera to scene origin
     camera.setTarget(BABYLON.Vector3.Zero());
-
-    // This attaches the camera to the canvas
     camera.attachControl(canvas, true);
-
-    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
     var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-
-    // Default intensity is 1. Let's dim the light a small amount
     light.intensity = 0.7;
-
 
     var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 1000, height: 1000 }, scene);
 
@@ -93,140 +67,32 @@ var createScene = function () {
     target.position.y = 25
     target.material = materialShip
 
-    //UI
 
-    var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    var UiPanel = new BABYLON.GUI.StackPanel();
+    // UI
+    advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    UiPanel = new BABYLON.GUI.StackPanel();
+
+    
     UiPanel.width = "220px";
     UiPanel.fontSize = "14px";
     UiPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     UiPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     advancedTexture.addControl(UiPanel);
 
-    paramsGUI.forEach((param) => {
-        var header = new BABYLON.GUI.TextBlock();
-        header.text = param.name + ":" + param.anim
-        header.height = "70px";
-        header.color = "yellow";
-        header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        header.paddingTop = "10px";
+    GUI.displayChangeParametersAllEntities(paramsGUI, pursuers, UiPanel)
+    GUI.displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors)
 
-        UiPanel.addControl(header);
+    
+    // BUTTONS TO STOP / START / SELECT ENTITIES
+    buttonSelect = GUI.createButton("Select Entity","10px","100px","100px","white","orange");
+    buttonStart = GUI.createButton("Start new entity","10px","100px","100px","white","green");
+    buttonStop = GUI.createButton("Stop all entities","10px","100px","100px","white","red");
 
-        var slider = new BABYLON.GUI.Slider();
+    UiPanel.addControl(buttonStart)
+    UiPanel.addControl(buttonSelect)
+    UiPanel.addControl(buttonStop)
 
-        slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        slider.minimum = 0;
-        slider.maximum = 1;
-        slider.color = "green";
-        slider.value = param.anim;
-        slider.height = "20px";
-        slider.width = "205px";
-        UiPanel.addControl(slider);
-        slider.onValueChangedObservable.add((v) => {
-            param.anim = v * param.weight;
-            paramsPursuer = {
-                "maxSpeed": paramsGUI[0].anim,
-                "steeringForce": paramsGUI[1].anim,
-                "mass": paramsGUI[2].anim
-            }
-            header.text = param.name + ":" + param.anim.toFixed(2);
-            pursuers.forEach(p => {
-                p.maxSpeed = paramsPursuer["maxSpeed"]
-                p.maxForce = paramsPursuer["steeringForce"]
-                p.mass = paramsPursuer["mass"]
-            })
-        })
-    });
-
-
-    // GUI VISUALIZATION OF VECTORS
-
-    var vectorsHeader = new BABYLON.GUI.TextBlock();
-    vectorsHeader.text = "SHOW VECTORS "
-    vectorsHeader.height = "70px"
-    vectorsHeader.marginRight = "5px";
-    vectorsHeader.fontWeight = "bold"
-    vectorsHeader.color = "yellow";
-    vectorsHeader.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-
-
-    UiPanel.addControl(vectorsHeader);
-
-    let i = 0;
-    for (var vectorName in decorVectors) {
-
-        var checkbox = new BABYLON.GUI.Checkbox();
-        checkbox.width = "30px";
-        checkbox.height = "30px";
-        checkbox.name = vectorName
-        checkbox.isChecked = false;
-        checkbox.color = Object.keys(colorVectors)[i];
-        checkbox.isEnabled = false;
-
-        checkbox.onIsCheckedChangedObservable.add(function (value) {
-            if (value) {
-                checkboxGUI.forEach(child => {
-                    if (child.isChecked) {
-                        if (decorVectors[child.name].length > 0) {
-                            decorVectors[child.name].forEach(v => {
-                                v.meshVisualization.isVisible = true
-                            })
-                        }
-                    }
-                })
-
-            } else {
-                checkboxGUI.forEach(child => {
-                    if (child.isChecked === false) {
-                        if (decorVectors[child.name].length > 0) {
-                            decorVectors[child.name].forEach(v => {
-                                v.meshVisualization.isVisible = false
-                            })
-                        }
-                    }
-                })
-
-            }
-        });
-
-        var vectorText = new BABYLON.GUI.TextBlock();
-        vectorText.text = vectorName
-        vectorText.height = "20px"
-        vectorText.marginRight = "5px";
-        vectorText.fontWeight = "bold"
-        vectorText.color = Object.keys(colorVectors)[i]
-        vectorText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-
-
-
-        UiPanel.addControl(checkbox);
-        UiPanel.addControl(vectorText);
-        checkboxGUI.push(checkbox)
-        i++;
-
-    }
-
-
-    /** ADD BUTTON TO CREATE AND STOP NEW PURSUERS */
-
-    var buttonSelect = BABYLON.GUI.Button.CreateSimpleButton("buttonSelect", "Select pursuers");
-    buttonSelect.paddingTop = "10px";
-    buttonSelect.width = "100px";
-    buttonSelect.height = "100px";
-    buttonSelect.color = "white";
-    buttonSelect.background = "orange";
-    buttonSelect.isEnabled = false;
-
-
-    var buttonPursuer = BABYLON.GUI.Button.CreateSimpleButton("but0", "Start new pursuers");
-    buttonPursuer.paddingTop = "10px";
-    buttonPursuer.width = "100px";
-    buttonPursuer.height = "100px";
-    buttonPursuer.color = "white";
-    buttonPursuer.background = "green";
-
-    buttonPursuer.onPointerDownObservable.add(function () {
+    buttonStart.onPointerDownObservable.add(function () {
         /** Pursuer */
         var pursuer = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
         pursuer.scaling = new BABYLON.Vector3(20, 20, 20)
@@ -237,14 +103,13 @@ var createScene = function () {
 
         /** Seek behaviour */
         var seekBehaviour = new SeekBehaviour(pursuer)
-        seekBehaviour.maxSpeed = paramsPursuer["maxSpeed"]
-        seekBehaviour.maxForce = paramsPursuer["steeringForce"]
-        seekBehaviour.mass = paramsPursuer["mass"]
+        seekBehaviour.maxSpeed = paramsGUI[0].anim.toFixed(2)
+        seekBehaviour.maxForce = paramsGUI[1].anim.toFixed(2)
+        seekBehaviour.mass = paramsGUI[2].anim.toFixed(2)
 
-        
-        var xChar = makeTextPlane(seekBehaviour.name, "red", 70);
+
+        var xChar = createText(seekBehaviour.name, "red", 70);
         xChar.position = seekBehaviour.position.clone()
-        xChar.position.y+=10;
 
         namesPursuers.push(xChar);
 
@@ -281,12 +146,6 @@ var createScene = function () {
 
     });
 
-    var buttonStop = BABYLON.GUI.Button.CreateSimpleButton("but1", "Stop pursuers");
-    buttonStop.paddingTop = "10px";
-    buttonStop.width = "100px";
-    buttonStop.height = "100px";
-    buttonStop.color = "white";
-    buttonStop.background = "red";
 
     buttonStop.onPointerDownObservable.add(function () {
         pursuers.forEach(p => {
@@ -297,13 +156,22 @@ var createScene = function () {
                 dc.meshVisualization.dispose()
             })
         }
+        namesPursuers.forEach(name => {
+            name.dispose()
+        })
+
+        if (UiPanelSelection != undefined) {
+            UiPanelSelection.dispose()
+        }
         pursuers = []
+        namesPursuers = []
         decorVectors = {
             "maxSpeed": [],
             "maxForce": [],
             "velocity": []
         }
         pursuerCreated = false
+        selectedEntity = false;
         checkboxGUI.forEach(child => {
             if (child.isEnabled === true) {
                 child.isEnabled = false
@@ -349,8 +217,9 @@ var createScene = function () {
                 inputName.verticalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 UiPanelSelection.addControl(inputName);
 
-                paramsGUISelection.forEach((param) => {
+                var paramsGUISelection = [...paramsGUI]
 
+                paramsGUISelection.forEach((param) => {
                     var header = new BABYLON.GUI.TextBlock();
                     header.text = param.name + ":" + param.anim
                     header.height = "30px";
@@ -372,16 +241,21 @@ var createScene = function () {
                     UiPanelSelection.addControl(slider);
                     slider.onValueChangedObservable.add((v) => {
                         param.anim = v * param.weight;
-                        paramsPursuerSelection = {
-                            "maxSpeed": paramsGUISelection[0].anim,
-                            "steeringForce": paramsGUISelection[1].anim,
-                            "mass": paramsGUISelection[2].anim
+                        var paramsName = [];
+                        paramsGUISelection.forEach(p => {
+                            paramsName.push(p.name)
+                        })
+                        var paramsPursuer = {};
+                        for (let i = 0; i < paramsName.length; i++) {
+                            let pName = paramsName[i]
+                            paramsPursuer[pName] = paramsGUI[i].anim
                         }
                         header.text = param.name + ":" + param.anim.toFixed(2);
-
-                        entity.maxSpeed = paramsPursuerSelection["maxSpeed"]
-                        entity.maxForce = paramsPursuerSelection["steeringForce"]
-                        entity.mass = paramsPursuerSelection["mass"]
+                        for (let i = 0; i < pursuers.length; i++) {
+                            for (let j = 0; j < paramsName.length; j++) {
+                                pursuers[i][paramsName[j]] = paramsPursuer[paramsName[j]]
+                            }
+                        }
                     })
 
 
@@ -409,7 +283,7 @@ var createScene = function () {
 
                     pursuers.forEach(p => {
                         p.mesh.material = materialSelected
-                        entity.name=inputName.text
+                        entity.name = inputName.text
 
                     })
                 });
@@ -419,10 +293,7 @@ var createScene = function () {
 
             }));
         });
-
-
         selectedEntity = true;
-
         var materialSelected = new BABYLON.StandardMaterial("selectedEntity", scene);
         materialSelected.diffuseColor = new BABYLON.Color3(0, 0, 1);
 
@@ -433,17 +304,6 @@ var createScene = function () {
 
 
     });
-
-
-
-
-    UiPanel.addControl(buttonPursuer);
-    UiPanel.addControl(buttonSelect);
-    UiPanel.addControl(buttonStop);
-
-
-
-
 
 
     //UPDATE PURSUERS
@@ -458,7 +318,8 @@ var createScene = function () {
             for (let i = 0; i < pursuers.length; i++) {
                 var directionRotation = (pursuers[i].velocity.clone()).normalize()
                 directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
-                // Update the pursuer
+
+                // Update pursuers
                 pursuers[i].mesh.rotation.x = Math.PI / 2;
                 pursuers[i].mesh.rotation.z = Math.PI / 2;
                 pursuers[i].mesh.rotation.y = directionRotation
@@ -466,13 +327,9 @@ var createScene = function () {
                 pursuers[i].update()
 
                 //Update name position
-
                 namesPursuers[i].dispose()
-                namesPursuers[i] = makeTextPlane(pursuers[i].name, "red", 70);
-                namesPursuers[i].position= pursuers[i].position.clone()
-                namesPursuers[i].position.y+=10
-                
-                
+                namesPursuers[i] = createText(pursuers[i].name, "red", 70);
+                namesPursuers[i].position = pursuers[i].position.clone()
                 namesPursuers[i].rotation.y = directionRotation
 
                 //Update the visualization of vectors
@@ -481,10 +338,6 @@ var createScene = function () {
                 decorVectors["velocity"][i].update(pursuers[i].velocity)
 
             }
-
-
-
-
         }
         time += 1
 
