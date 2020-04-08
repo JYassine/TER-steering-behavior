@@ -1,5 +1,6 @@
 import SeekBehaviour from "./SeekBehaviour.js";
 import DecorBehaviour from "../DecorBehaviour.js";
+import Utilities from "../Utilities.js";
 import GUI from "../GUI.js"
 
 var canvas = document.getElementById("renderCanvas");
@@ -10,9 +11,6 @@ var pursuerCreated = false;
 var selectedEntity = false;
 var pursuers = []
 var checkboxGUI = []
-var buttonStart;
-var buttonSelect;
-var buttonStop;
 var namesPursuers = [];
 var UiPanelSelection;
 var UiPanel;
@@ -33,17 +31,7 @@ var paramsGUI = [
     { name: "mass", anim: 200, weight: 200 }
 ]
 
-var createText = function (text, color, size) {
-    var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
-    dynamicTexture.hasAlpha = true;
-    dynamicTexture.drawText(text, 0, 40, "bold 36px Arial", color, "transparent", true);
-    var plane = new BABYLON.Mesh.CreatePlane("TextPlane", size, scene, true);
-    plane.material = new BABYLON.StandardMaterial("TextPlaneMaterial", scene);
-    plane.material.backFaceCulling = false;
-    plane.material.specularColor = new BABYLON.Color3(0, 0, 0);
-    plane.material.diffuseTexture = dynamicTexture;
-    return plane;
-};
+
 
 
 
@@ -79,14 +67,14 @@ var createScene = function () {
     UiPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     advancedTexture.addControl(UiPanel);
 
-    GUI.displayChangeParametersAllEntities(paramsGUI, pursuers, UiPanel)
+    GUI.displayChangeParametersEntities("70px",paramsGUI, pursuers, UiPanel)
     GUI.displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors)
 
     
     // BUTTONS TO STOP / START / SELECT ENTITIES
-    buttonSelect = GUI.createButton("Select Entity","10px","100px","100px","white","orange");
-    buttonStart = GUI.createButton("Start new entity","10px","100px","100px","white","green");
-    buttonStop = GUI.createButton("Stop all entities","10px","100px","100px","white","red");
+    var buttonSelect = GUI.createButton("Select Entity","10px","100px","100px","white","orange");
+    var buttonStart = GUI.createButton("Start new entity","10px","100px","100px","white","green");
+    var buttonStop = GUI.createButton("Stop all entities","10px","100px","100px","white","red");
 
     UiPanel.addControl(buttonStart)
     UiPanel.addControl(buttonSelect)
@@ -108,7 +96,7 @@ var createScene = function () {
         seekBehaviour.mass = paramsGUI[2].anim.toFixed(2)
 
 
-        var xChar = createText(seekBehaviour.name, "red", 70);
+        var xChar = Utilities.createText(seekBehaviour.name, "red", 70,scene);
         xChar.position = seekBehaviour.position.clone()
 
         namesPursuers.push(xChar);
@@ -160,9 +148,6 @@ var createScene = function () {
             name.dispose()
         })
 
-        if (UiPanelSelection != undefined) {
-            UiPanelSelection.dispose()
-        }
         pursuers = []
         namesPursuers = []
         decorVectors = {
@@ -199,67 +184,24 @@ var createScene = function () {
                 UiPanelSelection.fontSize = "14px";
                 UiPanelSelection.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
                 UiPanelSelection.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
                 advancedTexture.addControl(UiPanelSelection);
 
+                
                 var inputName = new BABYLON.GUI.InputText();
                 inputName.width = 0.2;
                 inputName.maxWidth = 0.2;
-
                 inputName.height = "50px";
                 inputName.width = "100px";
                 inputName.paddingTop = "10px";
-
                 inputName.text = entity.name
                 inputName.color = "orange";
                 inputName.background = "grey";
-
                 inputName.verticalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 UiPanelSelection.addControl(inputName);
-
+                
                 var paramsGUISelection = [...paramsGUI]
-
-                paramsGUISelection.forEach((param) => {
-                    var header = new BABYLON.GUI.TextBlock();
-                    header.text = param.name + ":" + param.anim
-                    header.height = "30px";
-                    header.color = "yellow";
-                    header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-                    header.paddingTop = "10px";
-
-                    UiPanelSelection.addControl(header);
-
-                    var slider = new BABYLON.GUI.Slider();
-
-                    slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-                    slider.minimum = 0;
-                    slider.maximum = 1;
-                    slider.color = "green";
-                    slider.value = param.anim;
-                    slider.height = "20px";
-                    slider.width = "205px";
-                    UiPanelSelection.addControl(slider);
-                    slider.onValueChangedObservable.add((v) => {
-                        param.anim = v * param.weight;
-                        var paramsName = [];
-                        paramsGUISelection.forEach(p => {
-                            paramsName.push(p.name)
-                        })
-                        var paramsPursuer = {};
-                        for (let i = 0; i < paramsName.length; i++) {
-                            let pName = paramsName[i]
-                            paramsPursuer[pName] = paramsGUI[i].anim
-                        }
-                        header.text = param.name + ":" + param.anim.toFixed(2);
-                        for (let i = 0; i < pursuers.length; i++) {
-                            for (let j = 0; j < paramsName.length; j++) {
-                                pursuers[i][paramsName[j]] = paramsPursuer[paramsName[j]]
-                            }
-                        }
-                    })
-
-
-                });
+                
+                GUI.displayChangeParametersEntity("30px", paramsGUISelection, entity, UiPanelSelection)
 
 
                 var buttonDone = BABYLON.GUI.Button.CreateSimpleButton("buttonDone", "DONE");
@@ -328,7 +270,7 @@ var createScene = function () {
 
                 //Update name position
                 namesPursuers[i].dispose()
-                namesPursuers[i] = createText(pursuers[i].name, "red", 70);
+                namesPursuers[i] = Utilities.createText(pursuers[i].name, "red", 70,scene);
                 namesPursuers[i].position = pursuers[i].position.clone()
                 namesPursuers[i].rotation.y = directionRotation
 

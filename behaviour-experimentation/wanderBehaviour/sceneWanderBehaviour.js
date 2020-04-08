@@ -1,40 +1,38 @@
 import WanderBehaviour from "./WanderBehaviour.js";
 import DecorBehaviour from "../DecorBehaviour.js";
 
+import GUI from "../GUI.js";
+
+import Utilities from "../Utilities.js";
+
 var canvas = document.getElementById("renderCanvas");
 
 var engine = null;
 var scene = null;
-var pursuerCreated = false;
-var materialShip;
+var entitiesCreated = false;
+
+var selectedEntity = false;
 var circlesWanders = []
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "blue": new BABYLON.Color3(0, 0, 1)
 }
-var decorVectors = {
-    "distance": [],
-    "radius": []
-}
 var checkboxGUI = []
-var pursuers = []
+var entities = []
+var nameEntities=[]
 var ground;
 var target;
+var UiPanel;
+var UiPanelSelection;
 
 var decorVectors = {
-    "distance": [],
-    "radius": []
+    "wanderDistance": [],
+    "wanderRadius": []
 }
 var paramsGUI = [
-    { name: "distance", anim: 10, weight: 10 },
-    { name: "radius", anim: 2, weight: 2 }
+    { name: "wanderDistance", anim: 10, weight: 10 },
+    { name: "wanderRadius", anim: 2, weight: 2 }
 ]
-
-var paramsPursuer = {
-    "distance": paramsGUI[0].anim,
-    "radius": paramsGUI[1].anim
-
-}
 
 var createCircleWanders = () => {
 
@@ -44,7 +42,7 @@ var createCircleWanders = () => {
     materialCircle.diffuseColor = new BABYLON.Color3(0, 1, 0); //green
     circle.material = materialCircle
 
-    circle.isVisible=false;
+    circle.isVisible = false;
 
     circlesWanders.push(circle)
 
@@ -55,22 +53,13 @@ var createCircleWanders = () => {
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
 
-    // This creates a basic Babylon Scene object (non-mesh)
     var scene = new BABYLON.Scene(engine);
 
-    // This creates and positions a free camera (non-mesh)
     var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(100, 200, 600), scene);
-
-    // This targets the camera to scene origin
     camera.setTarget(BABYLON.Vector3.Zero());
 
-    // This attaches the camera to the canvas
     camera.attachControl(canvas, true);
-
-    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
     var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-
-    // Default intensity is 1. Let's dim the light a small amount
     light.intensity = 0.7;
 
 
@@ -82,84 +71,58 @@ var createScene = function () {
 
     //UI
     var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-    var UiPanel = new BABYLON.GUI.StackPanel();
+    UiPanel = new BABYLON.GUI.StackPanel();
     UiPanel.width = "220px";
     UiPanel.fontSize = "14px";
     UiPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     UiPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     advancedTexture.addControl(UiPanel);
 
-    paramsGUI.forEach((param) => {
-        var header = new BABYLON.GUI.TextBlock();
-        header.text = param.name + ":" + param.anim
-        header.height = "70px";
-        header.color = "yellow";
-        header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        header.paddingTop = "10px";
+    GUI.displayChangeParametersEntities("70px", paramsGUI, entities, UiPanel)
 
-        UiPanel.addControl(header);
+    /** ADD BUTTON TO CREATE NEW entity */
 
-        var slider = new BABYLON.GUI.Slider();
-        slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        slider.minimum = 0;
-        slider.maximum = 1;
-        slider.color = "green";
-        slider.value = param.anim;
-        slider.height = "20px";
-        slider.width = "205px";
-        UiPanel.addControl(slider);
-        slider.onValueChangedObservable.add((v) => {
-            param.anim = v * (param.weight);
-            paramsPursuer = {
-                "distance": paramsGUI[0].anim,
-                "radius": paramsGUI[1].anim
-            }
-            header.text = param.name + ":" + (param.anim);
-        })
-    });
 
-    /** ADD BUTTON TO CREATE NEW PURSUERS */
+    var buttonSelect = GUI.createButton("Select Entity", "10px", "100px", "100px", "white", "orange");
+    var buttonStart = GUI.createButton("Start new entity", "10px", "100px", "100px", "white", "green");
+    var buttonStop = GUI.createButton("Stop all entities", "10px", "100px", "100px", "white", "red");
 
-    var buttonPursuer = BABYLON.GUI.Button.CreateSimpleButton("but0", "Add new wander entity");
-    buttonPursuer.paddingTop = "10px";
-    buttonPursuer.width = "200px";
-    buttonPursuer.height = "100px";
-    buttonPursuer.color = "white";
-    buttonPursuer.background = "green";
+    // BUTTON START
+    buttonStart.onPointerDownObservable.add(function () {
 
-    buttonPursuer.onPointerDownObservable.add(function () {
+        var entity = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
+        entity.scaling = new BABYLON.Vector3(20, 20, 20)
+        entity.material = materialShip;
+        entity.checkCollisions = true
+        entity.position.y = 20
 
-        var pursuer = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
-        pursuer.scaling = new BABYLON.Vector3(20, 20, 20)
-        pursuer.material = materialShip;
-        pursuer.checkCollisions = true
-        pursuer.position.y = 20
 
-        
         createCircleWanders()
         /** Seek behaviour */
-        var wanderBehaviour = new WanderBehaviour(pursuer)
+        var wanderBehaviour = new WanderBehaviour(entity)
         var decorDistance = new DecorBehaviour(wanderBehaviour.position)
-        var decorRadius = new DecorBehaviour(circlesWanders[circlesWanders.length-1].position)
+        var decorRadius = new DecorBehaviour(circlesWanders[circlesWanders.length - 1].position)
         decorDistance.createVector(100, new BABYLON.Color3(1, 0, 0), scene, false)
         decorRadius.createVector(100, new BABYLON.Color3(0, 0, 1), scene, false)
-        decorVectors["distance"].push(decorDistance)
-        decorVectors["radius"].push(decorRadius)
-        pursuers.push(wanderBehaviour)
-        pursuerCreated = true
+        decorVectors["wanderDistance"].push(decorDistance)
+        decorVectors["wanderRadius"].push(decorRadius)
+        wanderBehaviour.wanderDistance = paramsGUI[0].anim.toFixed(2)
+        wanderBehaviour.wanderRadius = paramsGUI[1].anim.toFixed(2)
+
+        var xChar = Utilities.createText(wanderBehaviour.name, "red", 70,scene);
+        xChar.position = wanderBehaviour.position.clone()
+        nameEntities.push(xChar);
+
+        entities.push(wanderBehaviour)
+        entitiesCreated = true
         checkboxGUI.forEach(child => {
             child.isEnabled = true
             checkboxGUI.forEach(child => {
                 if (child.isChecked) {
                     if (decorVectors[child.name].length > 0) {
-                        for(let i=0;i<decorVectors[child.name].length;i++){
-                            if(child.name==="radius") {
-                                circlesWanders[i].isVisible=true;
-                            }
+                        for (let i = 0; i < decorVectors[child.name].length; i++) {
                             decorVectors[child.name][i].meshVisualization.isVisible = true
-                           
                         }
-                       
                     }
                 }
             })
@@ -167,15 +130,9 @@ var createScene = function () {
 
     });
 
-    var buttonStop = BABYLON.GUI.Button.CreateSimpleButton("but1", "Stop wanders entity");
-    buttonStop.paddingTop = "10px";
-    buttonStop.width = "200px";
-    buttonStop.height = "100px";
-    buttonStop.color = "white";
-    buttonStop.background = "red";
-
+    // BUTTON STOP
     buttonStop.onPointerDownObservable.add(function () {
-        pursuers.forEach(p => {
+        entities.forEach(p => {
             p.getMesh().dispose()
         });
         for (var decorVector in decorVectors) {
@@ -183,16 +140,25 @@ var createScene = function () {
                 dc.meshVisualization.dispose()
             })
         }
-        circlesWanders.forEach(circle=>{
+        circlesWanders.forEach(circle => {
             circle.dispose()
         })
-        pursuers = []
-        circlesWanders=[]
-        decorVectors = {
-            "distance": [],
-            "radius": []
+        
+        if (UiPanelSelection != undefined) {
+            UiPanelSelection.dispose()
         }
-        pursuerCreated = false
+        entities = []
+        circlesWanders = []
+        decorVectors = {
+            "wanderDistance": [],
+            "wanderRadius": []
+        }
+        nameEntities.forEach(n=>{
+            n.dispose()
+        })
+        nameEntities=[]
+        entitiesCreated = false
+        selectedEntity=false
         checkboxGUI.forEach(child => {
             if (child.isEnabled === true) {
                 child.isEnabled = false
@@ -201,111 +167,135 @@ var createScene = function () {
         })
     });
 
-    var vectorsHeader = new BABYLON.GUI.TextBlock();
-    vectorsHeader.text = "SHOW VECTORS "
-    vectorsHeader.height = "70px"
-    vectorsHeader.marginRight = "5px";
-    vectorsHeader.fontWeight = "bold"
-    vectorsHeader.color = "yellow";
-    vectorsHeader.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+    // BUTTON SELECT
+    buttonSelect.onPointerDownObservable.add(function () {
+
+        entities.forEach(entity => {
+            entity.mesh.actionManager = new BABYLON.ActionManager(scene);
+            entity.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, function (ev) {
+
+                if (UiPanelSelection !== undefined) {
+                    UiPanelSelection.dispose();
+                    UiPanelSelection = undefined;
+
+                }
+
+                //UI SELECTION 
+                UiPanelSelection = new BABYLON.GUI.StackPanel();
+                UiPanelSelection.width = "220px";
+                UiPanelSelection.fontSize = "14px";
+                UiPanelSelection.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+                UiPanelSelection.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+                advancedTexture.addControl(UiPanelSelection);
 
 
-    UiPanel.addControl(vectorsHeader);
+                var inputName = new BABYLON.GUI.InputText();
+                inputName.width = 0.2;
+                inputName.maxWidth = 0.2;
+                inputName.height = "50px";
+                inputName.width = "100px";
+                inputName.paddingTop = "10px";
+                inputName.text = entity.name
+                inputName.color = "orange";
+                inputName.background = "grey";
+                inputName.verticalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+                UiPanelSelection.addControl(inputName);
 
-    let i = 0;
-    for (var vectorName in decorVectors) {
+                var paramsGUISelection = [...paramsGUI]
+                GUI.displayChangeParametersEntity("30px", paramsGUISelection, entity, UiPanelSelection)
 
-        var checkbox = new BABYLON.GUI.Checkbox();
-        checkbox.width = "30px";
-        checkbox.height = "30px";
-        checkbox.name = vectorName
-        checkbox.isChecked = false;
-        checkbox.color = Object.keys(colorVectors)[i];
-        checkbox.isEnabled = false;
 
-        checkbox.onIsCheckedChangedObservable.add(function (value) {
-            if (value) {
-                checkboxGUI.forEach(child => {
-                    if (child.isChecked) {
-                        for(let i=0;i<decorVectors[child.name].length;i++){
-                            if(child.name==="radius") {
-                                circlesWanders[i].isVisible=true;
-                            }
-                            decorVectors[child.name][i].meshVisualization.isVisible = true
-                           
-                        }
-                    }
-                })
+                var buttonDone = BABYLON.GUI.Button.CreateSimpleButton("buttonDone", "DONE");
+                buttonDone.paddingTop = "10px";
+                buttonDone.width = "50px";
+                buttonDone.height = "50px";
+                buttonDone.color = "white";
+                buttonDone.background = "green";
 
-            } else {
-                checkboxGUI.forEach(child => {
-                    if (child.isChecked === false) {
-                        for(let i=0;i<decorVectors[child.name].length;i++){
-                            if(child.name==="radius") {
-                                circlesWanders[i].isVisible=false;
-                            }
-                            decorVectors[child.name][i].meshVisualization.isVisible = false
-                           
-                        }
-                    }
-                })
+                UiPanelSelection.addControl(buttonDone);
 
-            }
+                buttonDone.onPointerDownObservable.add(function () {
+
+                    selectedEntity = false
+                    UiPanelSelection.dispose()
+                    UiPanelSelection = undefined
+
+
+                    var materialSelected = new BABYLON.StandardMaterial("selectedEntity", scene);
+                    materialSelected.diffuseColor = new BABYLON.Color3(1, 0, 0);
+
+                    entities.forEach(p => {
+                        p.mesh.material = materialSelected
+                        entity.name = inputName.text
+
+                    })
+                });
+
+
+
+
+            }));
         });
+        selectedEntity = true;
+        var materialSelected = new BABYLON.StandardMaterial("selectedEntity", scene);
+        materialSelected.diffuseColor = new BABYLON.Color3(0, 0, 1);
 
-        var vectorText = new BABYLON.GUI.TextBlock();
-        vectorText.text = vectorName
-        vectorText.height = "20px"
-        vectorText.marginRight = "5px";
-        vectorText.fontWeight = "bold"
-        vectorText.color = Object.keys(colorVectors)[i]
-        vectorText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+        entities.forEach(p => {
+            p.mesh.material = materialSelected
 
-
-
-        UiPanel.addControl(checkbox);
-        UiPanel.addControl(vectorText);
-        checkboxGUI.push(checkbox)
-        i++;
-
-    }
+        })
 
 
-    UiPanel.addControl(buttonPursuer);
-    UiPanel.addControl(buttonStop);
+    });
+
+
+
+    GUI.displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors)
+    UiPanel.addControl(buttonStart)
+    UiPanel.addControl(buttonSelect)
+    UiPanel.addControl(buttonStop)
 
     var time = 0;
     scene.registerAfterRender(function () {
 
-        if (pursuerCreated === true) {
-            pursuers.forEach(p => {
-                p.wanderRadius = paramsPursuer["radius"]
-                p.wanderDistance = paramsPursuer["distance"]
-            });
-            for (let i = 0; i < pursuers.length; i++) {
-                var directionRotation = (pursuers[i].velocity.clone()).normalize()
+        if (entitiesCreated === true && selectedEntity === false) {
+            for (let i = 0; i < entities.length; i++) {
+                var directionRotation = (entities[i].velocity.clone()).normalize()
                 directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
 
-                // Update the pursuer
-
-                pursuers[i].mesh.rotation.x = Math.PI / 2;
-                pursuers[i].mesh.rotation.z = Math.PI / 2;
-                pursuers[i].mesh.rotation.y = directionRotation
-                pursuers[i].run(target)
-                pursuers[i].update()
+                // Update entities
+                entities[i].mesh.rotation.x = Math.PI / 2;
+                entities[i].mesh.rotation.z = Math.PI / 2;
+                entities[i].mesh.rotation.y = directionRotation
+                entities[i].run(target)
+                entities[i].update()
 
                 //Update the visualization of vectors
-                decorVectors["distance"][i].update(pursuers[i].wanderCenter)
-                var directionRotationCenter = (pursuers[i].wanderCenter.clone()).normalize()
+                decorVectors["wanderDistance"][i].update(entities[i].wanderCenter)
+                var directionRotationCenter = (entities[i].wanderCenter.clone()).normalize()
                 directionRotationCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
-
-                circlesWanders[i].position = pursuers[i].wanderCenter.clone().add(pursuers[i].position.clone())
-                circlesWanders[i].locallyTranslate(new BABYLON.Vector3(-28*(paramsPursuer["distance"]), 0, 0))
+                
+                // Update the visualization of circles 
+                circlesWanders[i].position = entities[i].wanderCenter.clone().add(entities[i].position.clone())
+                circlesWanders[i].locallyTranslate(new BABYLON.Vector3(-28 * entities[i].wanderDistance, 0, 0))
                 circlesWanders[i].rotation.y = directionRotation
+                if (checkboxGUI[1].isChecked) {
+                    circlesWanders[i].isVisible = true;
+                } else {
+                    circlesWanders[i].isVisible = false;
+                }
 
-                decorVectors["radius"][i].origin = circlesWanders[i].position.clone()
-                decorVectors["radius"][i].origin.y+=5
-                decorVectors["radius"][i].update(pursuers[i].displacement)
+                decorVectors["wanderRadius"][i].origin = circlesWanders[i].position.clone()
+                decorVectors["wanderRadius"][i].origin.y += 5
+                decorVectors["wanderRadius"][i].update(entities[i].displacement)
+                
+                //Update name of entities
+                nameEntities[i].dispose()
+                nameEntities[i] = Utilities.createText(entities[i].name, "red", 70,scene);
+                nameEntities[i].position = entities[i].position.clone()
+                nameEntities[i].rotation.y = directionRotation
+
             }
         }
         time += 1

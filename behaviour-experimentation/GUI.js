@@ -1,11 +1,57 @@
 var GUI = {
-    // Display the panel to change the parameters of ALL entities
-    displayChangeParametersAllEntities(paramsGUI, pursuers, UiPanel) {
+
+    // Display the panel to change the parameters of one entities
+    displayChangeParametersEntity(height, paramsGUI, entity, UiPanel) {
 
         paramsGUI.forEach((param) => {
             var header = new BABYLON.GUI.TextBlock();
             header.text = param.name + ":" + param.anim
-            header.height = "70px";
+            header.height = height;
+            header.color = "yellow";
+            header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+            header.paddingTop = "10px";
+
+            UiPanel.addControl(header);
+            var slider = new BABYLON.GUI.Slider();
+
+            slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+            slider.minimum = 0;
+            slider.maximum = 1;
+            slider.color = "green";
+            slider.value = param.anim;
+            slider.height = "20px";
+            slider.width = "205px";
+            UiPanel.addControl(slider);
+            slider.onValueChangedObservable.add((v) => {
+                param.anim = v * param.weight;
+                var paramsName = [];
+                paramsGUI.forEach(p => {
+                    paramsName.push(p.name)
+                })
+                var paramsPursuer = {};
+                for (let i = 0; i < paramsName.length; i++) {
+                    let pName = paramsName[i]
+                    paramsPursuer[pName] = paramsGUI[i].anim
+                }
+                header.text = param.name + ":" + param.anim.toFixed(2);
+                for (let j = 0; j < paramsName.length; j++) {
+                    entity[paramsName[j]] = paramsPursuer[paramsName[j]]
+                }
+
+
+            })
+        })
+
+
+    },
+
+    // Display the panel to change the parameters of ALL entities
+    displayChangeParametersEntities(height, paramsGUI, pursuers, UiPanel) {
+
+        paramsGUI.forEach((param) => {
+            var header = new BABYLON.GUI.TextBlock();
+            header.text = param.name + ":" + param.anim
+            header.height = height;
             header.color = "yellow";
             header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
             header.paddingTop = "10px";
@@ -45,6 +91,8 @@ var GUI = {
     },
 
 
+
+
     // Show the vectors of entities
     displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors) {
         var vectorsHeader = new BABYLON.GUI.TextBlock();
@@ -75,6 +123,7 @@ var GUI = {
                         if (child.isChecked) {
                             if (decorVectors[child.name].length > 0) {
                                 decorVectors[child.name].forEach(v => {
+
                                     v.meshVisualization.isVisible = true
                                 })
                             }
@@ -115,10 +164,10 @@ var GUI = {
 
     },
 
-    // Show the button stop, select and start
+    // create button
     createButton(nameButton, paddingTop, width, height, color, background) {
 
-        var button = BABYLON.GUI.Button.CreateSimpleButton("buttonSelect", nameButton);
+        var button = BABYLON.GUI.Button.CreateSimpleButton(nameButton, nameButton);
         button.paddingTop = paddingTop;
         button.width = width;
         button.height = height;
