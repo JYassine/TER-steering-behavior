@@ -29,7 +29,8 @@ var decorVectors = {
 }
 var paramsGUI = [
     { name: "wanderDistance", anim: 10, weight: 10 },
-    { name: "wanderRadius", anim: 2, weight: 2 }
+    { name: "wanderRadius", anim: 2, weight: 2 },
+    { name: "desiredSeparation", anim: 300, weight: 300 }
 ]
 
 var createCircleWanders = () => {
@@ -106,8 +107,12 @@ var createScene = function () {
         decorVectors["wanderRadius"].push(decorRadius)
         wanderBehaviour.wanderDistance = paramsGUI[0].anim.toFixed(2)
         wanderBehaviour.wanderRadius = paramsGUI[1].anim.toFixed(2)
+        wanderBehaviour.desiredSeparation = paramsGUI[2].anim.toFixed(2)
 
-        var xChar = Utilities.createText(wanderBehaviour.name, "red", 70,scene);
+        var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
+        dynamicTexture.hasAlpha = true;
+        dynamicTexture.drawText(wanderBehaviour.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
+        var xChar = Utilities.createText(dynamicTexture, 70,scene);
         xChar.position = wanderBehaviour.position.clone()
         nameEntities.push(xChar);
 
@@ -243,7 +248,8 @@ var createScene = function () {
             p.mesh.material = materialSelected
 
         })
-
+        
+        Utilities.updateTextMesh(entities[i].name, namesPursuers[i], scene);
 
     });
 
@@ -266,6 +272,7 @@ var createScene = function () {
                 entities[i].mesh.rotation.x = Math.PI / 2;
                 entities[i].mesh.rotation.z = Math.PI / 2;
                 entities[i].mesh.rotation.y = dR
+                entities[i].separate(entities)
                 entities[i].run(target)
                 entities[i].update()
 
@@ -291,7 +298,6 @@ var createScene = function () {
                 
                 //Update name of entities
                 nameEntities[i].dispose()
-                nameEntities[i] = Utilities.createText(entities[i].name, "red", 70,scene);
                 nameEntities[i].position = entities[i].position.clone()
                 nameEntities[i].rotation.y = dR
 
