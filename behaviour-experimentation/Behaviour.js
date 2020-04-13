@@ -9,7 +9,8 @@ export default class Behaviour {
         this.maxSpeed = 2
         this.maxForce = 0.1
         this.mass = 10
-        this.name="Heinsenberg"
+        this.name = "Heinsenberg"
+        this.desiredSeparation=5
 
     }
 
@@ -17,6 +18,38 @@ export default class Behaviour {
     run(target) {
 
 
+    }
+
+    separate(vehicles) {
+        let sum = new BABYLON.Vector3(0, 0, 0)
+        let count = 0;
+        vehicles.forEach(v => {
+            let d = BABYLON.Vector3.Distance(this.position, v.position);
+            if ((d > 0) && (d < this.desiredSeparation)) {
+                let diff = this.position.subtract(v.position);
+                diff.normalize();
+                diff = diff.scale(1/d);
+                sum.addInPlace(diff);
+                count++;
+            }
+
+        });
+
+        if (count > 0) {
+            sum = sum.scale(1/count);
+            sum.normalize();
+            sum = sum.scale(this.maxSpeed);
+            sum.y=0
+            var sumSteer = sum.subtract(this.velocity)
+            const lengthSteer = sumSteer.length();
+            let tempSteer = sumSteer.clone();
+            const scaledToMaxForce = tempSteer.normalize().scale(this.maxForce);
+
+            if (!(lengthSteer < this.maxForce)) {
+                sumSteer = scaledToMaxForce
+            }
+            this.applyForce(sumSteer);
+        }
     }
 
     getMesh() {
@@ -27,8 +60,8 @@ export default class Behaviour {
         if (this.mass > 0) {
 
             this.acceleration.addInPlace(force.scale(1 / this.mass));
-        }else{
-            
+        } else {
+
             this.acceleration.addInPlace(force);
         }
     }

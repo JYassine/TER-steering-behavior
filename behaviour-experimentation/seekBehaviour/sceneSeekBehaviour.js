@@ -22,12 +22,13 @@ var colorVectors = {
 var decorVectors = {
     "maxSpeed": [],
     "maxForce": [],
-    "velocity": []
+    "velocity": [],
 }
 var paramsGUI = [
     { name: "maxSpeed", anim: 15, weight: 15 },
     { name: "maxForce", anim: 30, weight: 30 },
-    { name: "mass", anim: 200, weight: 200 }
+    { name: "mass", anim: 200, weight: 200 },
+    { name: "desiredSeparation", anim: 300, weight: 300 }
 ]
 
 
@@ -59,29 +60,34 @@ var createScene = function () {
     advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     UiPanel = new BABYLON.GUI.StackPanel();
 
-    
+
     UiPanel.width = "220px";
     UiPanel.fontSize = "14px";
     UiPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     UiPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     advancedTexture.addControl(UiPanel);
 
-    GUI.displayChangeParametersEntities("70px",paramsGUI, pursuers, UiPanel)
+    GUI.displayChangeParametersEntities("70px", paramsGUI, pursuers, UiPanel)
     GUI.displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors)
 
-    
+
     // BUTTONS TO STOP / START / SELECT ENTITIES
-    var buttonSelect = GUI.createButton("Select Entity","10px","100px","100px","white","orange");
-    var buttonStart = GUI.createButton("Start new entity","10px","100px","100px","white","green");
-    var buttonStop = GUI.createButton("Stop all entities","10px","100px","100px","white","red");
+    var buttonSelect = GUI.createButton("Select Entity", "10px", "100px", "100px", "white", "orange");
+    var buttonStart = GUI.createButton("Start new entity", "10px", "100px", "100px", "white", "green");
+    var buttonStop = GUI.createButton("Stop all entities", "10px", "100px", "100px", "white", "red");
 
     UiPanel.addControl(buttonStart)
     UiPanel.addControl(buttonSelect)
     UiPanel.addControl(buttonStop)
 
+
+
     buttonStart.onPointerDownObservable.add(function () {
+        var pursuer;
+        var seekBehaviour;
+
         /** Pursuer */
-        var pursuer = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
+        pursuer = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
         pursuer.scaling = new BABYLON.Vector3(20, 20, 20)
         pursuer.material = materialShip;
         pursuer.checkCollisions = true
@@ -89,16 +95,22 @@ var createScene = function () {
         pursuer.position.x += 500
 
         /** Seek behaviour */
-        var seekBehaviour = new SeekBehaviour(pursuer)
+        seekBehaviour = new SeekBehaviour(pursuer)
         seekBehaviour.maxSpeed = paramsGUI[0].anim.toFixed(2)
         seekBehaviour.maxForce = paramsGUI[1].anim.toFixed(2)
         seekBehaviour.mass = paramsGUI[2].anim.toFixed(2)
+        seekBehaviour.desiredSeparation = paramsGUI[3].anim.toFixed(2)
 
 
-        var xChar = Utilities.createText(seekBehaviour.name, "red", 70,scene);
+        var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
+        dynamicTexture.hasAlpha = true;
+        dynamicTexture.drawText(seekBehaviour.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
+        var xChar = Utilities.createText(dynamicTexture, 70, scene);
         xChar.position = seekBehaviour.position.clone()
 
         namesPursuers.push(xChar);
+
+
 
 
         //Vector of seek behaviours
@@ -185,7 +197,7 @@ var createScene = function () {
                 UiPanelSelection.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
                 advancedTexture.addControl(UiPanelSelection);
 
-                
+
                 var inputName = new BABYLON.GUI.InputText();
                 inputName.width = 0.2;
                 inputName.maxWidth = 0.2;
@@ -197,9 +209,9 @@ var createScene = function () {
                 inputName.background = "grey";
                 inputName.verticalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 UiPanelSelection.addControl(inputName);
-                
+
                 var paramsGUISelection = [...paramsGUI]
-                
+
                 GUI.displayChangeParametersEntity("30px", paramsGUISelection, entity, UiPanelSelection)
 
 
@@ -222,6 +234,7 @@ var createScene = function () {
                     var materialSelected = new BABYLON.StandardMaterial("selectedEntity", scene);
                     materialSelected.diffuseColor = new BABYLON.Color3(1, 0, 0);
 
+                    Utilities.updateTextMesh(pursuers[i].name, namesPursuers[i], scene);
                     pursuers.forEach(p => {
                         p.mesh.material = materialSelected
                         entity.name = inputName.text
@@ -264,12 +277,14 @@ var createScene = function () {
                 pursuers[i].mesh.rotation.x = Math.PI / 2;
                 pursuers[i].mesh.rotation.z = Math.PI / 2;
                 pursuers[i].mesh.rotation.y = directionRotation
+
+                pursuers[i].separate(pursuers)
                 pursuers[i].run(target.position)
                 pursuers[i].update()
 
+
+
                 //Update name position
-                namesPursuers[i].dispose()
-                namesPursuers[i] = Utilities.createText(pursuers[i].name, "red", 70,scene);
                 namesPursuers[i].position = pursuers[i].position.clone()
                 namesPursuers[i].rotation.y = directionRotation
 
