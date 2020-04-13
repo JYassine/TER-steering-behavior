@@ -14,7 +14,7 @@ export default class SeekBehaviour extends Behaviour {
     run(target) {
         var x = this.position.x;
         var z = this.position.z;
-        this.desired = target.position.subtract(new BABYLON.Vector3(x, this.position.y, z));
+        this.desired = target.subtract(new BABYLON.Vector3(x, this.position.y, z));
 
         // Scale to maximum speed
         this.desired.normalize()

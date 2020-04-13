@@ -1,8 +1,6 @@
 import WanderBehaviour from "./WanderBehaviour.js";
 import DecorBehaviour from "../DecorBehaviour.js";
-
 import GUI from "../GUI.js";
-
 import Utilities from "../Utilities.js";
 
 var canvas = document.getElementById("renderCanvas");
@@ -262,24 +260,24 @@ var createScene = function () {
         if (entitiesCreated === true && selectedEntity === false) {
             for (let i = 0; i < entities.length; i++) {
                 var directionRotation = (entities[i].velocity.clone()).normalize()
-                directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
+                var dR = Math.atan2(directionRotation.z, -directionRotation.x)
 
                 // Update entities
                 entities[i].mesh.rotation.x = Math.PI / 2;
                 entities[i].mesh.rotation.z = Math.PI / 2;
-                entities[i].mesh.rotation.y = directionRotation
+                entities[i].mesh.rotation.y = dR
                 entities[i].run(target)
                 entities[i].update()
 
                 //Update the visualization of vectors
                 decorVectors["wanderDistance"][i].update(entities[i].wanderCenter)
                 var directionRotationCenter = (entities[i].wanderCenter.clone()).normalize()
-                directionRotationCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
+                var drCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
                 
                 // Update the visualization of circles 
                 circlesWanders[i].position = entities[i].wanderCenter.clone().add(entities[i].position.clone())
                 circlesWanders[i].locallyTranslate(new BABYLON.Vector3(-28 * entities[i].wanderDistance, 0, 0))
-                circlesWanders[i].rotation.y = directionRotation
+                circlesWanders[i].rotation.y = drCenter
                 if (checkboxGUI[1].isChecked) {
                     circlesWanders[i].isVisible = true;
                 } else {
@@ -290,11 +288,12 @@ var createScene = function () {
                 decorVectors["wanderRadius"][i].origin.y += 5
                 decorVectors["wanderRadius"][i].update(entities[i].displacement)
                 
+                
                 //Update name of entities
                 nameEntities[i].dispose()
                 nameEntities[i] = Utilities.createText(entities[i].name, "red", 70,scene);
                 nameEntities[i].position = entities[i].position.clone()
-                nameEntities[i].rotation.y = directionRotation
+                nameEntities[i].rotation.y = dR
 
             }
         }

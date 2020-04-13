@@ -7,10 +7,10 @@ export default class WanderBehaviour extends Behaviour{
         this.wanderCenter=0;
         this.wanderDistance=0
         this.wanderRadius=0
-        this.wanderAngle=1;
+        this.wanderAngle=15;
         this.wanderForce= new BABYLON.Vector3(0,0,0)
         this.displacement=new BABYLON.Vector3(1,0,1)
-        this.random = 8;
+        this.random = 10;
         
         
     }
@@ -23,8 +23,8 @@ export default class WanderBehaviour extends Behaviour{
         var wanderCenterScaled = this.wanderCenter.scale(this.wanderDistance)
         this.wanderCenter=wanderCenterScaled;
 
-        const randomAngle = (Math.random() * 3 - 1) * this.random;
-        const angle = (this.wanderAngle + randomAngle) + Math.PI;
+        const randomAngle = (Math.random() * -2 + 1) * this.random;
+        const angle = (this.wanderAngle + randomAngle)  % 360;
         this.wanderAngle = angle;
         
         this.displacement.x = Math.cos((Math.PI / 180) * this.wanderAngle) ;

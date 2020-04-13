@@ -4,7 +4,6 @@ import Utilities from "../Utilities.js";
 import GUI from "../GUI.js"
 
 var canvas = document.getElementById("renderCanvas");
-
 var engine = null;
 var scene = null;
 var pursuerCreated = false;
@@ -265,7 +264,7 @@ var createScene = function () {
                 pursuers[i].mesh.rotation.x = Math.PI / 2;
                 pursuers[i].mesh.rotation.z = Math.PI / 2;
                 pursuers[i].mesh.rotation.y = directionRotation
-                pursuers[i].run(target)
+                pursuers[i].run(target.position)
                 pursuers[i].update()
 
                 //Update name position
