@@ -5,67 +5,85 @@ export default class PathBehaviour extends Behaviour {
 
     constructor(mesh) {
         super(mesh)
-        this.r=10
+        this.radiusPath=2
         this.t = new SeekBehaviour(this.mesh)
-        this.t.maxSpeed = 3
-        this.t.maxForce = 8
-        this.t.mass = 1
-        this.targetP = undefined
+        this.t.maxSpeed = 5
+        this.t.maxForce = 10
+        this.t.mass = 50
+        this.targetP = undefined;
+        this.predictpos = undefined;
+        this.normal = undefined;
     }
 
+    isPointOnSegment(a, b, p) {
+        const tolerance = 0.1
+        const ab = BABYLON.Vector3.Distance(a, b)
+        const pa = BABYLON.Vector3.Distance(p, a)
+        const pb = BABYLON.Vector3.Distance(p, b)
+        const difference = ab - (pa + pb)
 
-    run(targetPath) {
+        return difference < tolerance && difference > -tolerance
+    }
 
-        var predict = this.velocity.clone().normalize().scale(3)
-        var predictpos = this.position.addInPlace(predict)
+    run(paths) {
 
-        var a = targetPath.firstPoint;
-        var b = targetPath.lastPoint;
+        var predict = this.velocity.clone().normalize().scale(20)
+        this.predictpos = predict.add(this.position)
 
-        var normalPoint = this.getNormalPoint(predictpos, a, b);
+        let worldRecord = 1000000;
 
-        var dir = b.subtract(a)
-        dir.normalize();
-        dir = dir.scale(10);  // This could be based on velocity instead of just an arbitrary 10 pixels
-        this.targetP = normalPoint.addInPlace(dir)
+        for (let i = 0; i < paths.length-1; i++) {
+            var a = paths[i]
+            var b = paths[i+1]
+            var normalPoint = this.normalPoint(this.predictpos, a, b);
 
-        // How far away are we from the path?
-        var distance = BABYLON.Vector3.Distance(predictpos, normalPoint);
-        // Only if the distance is greater than the path's radius do we bother to steer
-        if (distance > targetPath.radius) {
+            var distance=null;
+
+            if (this.isPointOnSegment(a, b, normalPoint)) {
+                distance = BABYLON.Vector3.Distance(this.predictpos, normalPoint)
+                
+            } else {
+
+                const distanceA = BABYLON.Vector3.Distance(this.predictpos, a)
+                const distanceB = BABYLON.Vector3.Distance(this.predictpos, b)
+                distance = Math.min(distanceA, distanceB)
+                normalPoint = distanceA < distanceB ? a : b
+            }
+
+            var distance = BABYLON.Vector3.Distance(this.predictpos, normalPoint)
 
 
-            console.log("DISTANCE : "+ distance)
-            
-            console.log("RADIUS : "+ targetPath.radius)
-            this.t.run(this.targetP)
-            console.log(this.targetP)
+            if (distance < worldRecord) {
+                worldRecord = distance;
+                this.normal = normalPoint;
+                
+                var dir = b.subtract(a)
+                dir.normalize();
+                dir = dir.scale(10);
+                this.targetP = this.normal.clone().add(dir)
 
+
+            }
         }
+
+        if (worldRecord > this.radiusPath) {
+            this.t.run(this.targetP)
+        }
+
     }
 
-    getNormalPoint(vectorPath, a, b) {
-        // Vector from a to p
+    normalPoint(vectorPath, a, b) {
         var ap = vectorPath.subtract(a)
-        // Vector from a to b
         var ab = b.subtract(a)
 
-        ab.normalize(); // Normalize the line
-        // Project vector "diff" onto line by using the dot product
+        ab.normalize(); 
         var dot = BABYLON.Vector3.Dot(ap, ab)
         ab = ab.scale(dot);
 
-        var normalPoint = a.addInPlace(ab);
+        var normalPoint = a.add(ab);
         return normalPoint;
     }
 
-
-    borders(path) {
-        if (this.t.position.x > path.lastPoint.x + this.r) {
-            this.t.position.x = path.firstPoint.x - this.r;
-            this.t.position.z = path.firstPoint.z + (this.t.position.z-path.lastPoint.z);
-        }
-      }
 
 
 }

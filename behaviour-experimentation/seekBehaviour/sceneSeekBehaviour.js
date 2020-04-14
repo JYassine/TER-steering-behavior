@@ -102,6 +102,7 @@ var createScene = function () {
         seekBehaviour.desiredSeparation = paramsGUI[3].anim.toFixed(2)
 
 
+        
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
         dynamicTexture.hasAlpha = true;
         dynamicTexture.drawText(seekBehaviour.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
