@@ -39,20 +39,21 @@ export default class PathBehaviour extends Behaviour {
             var normalPoint = this.normalPoint(this.predictpos, a, b);
 
             var distance=null;
+            
 
             if (this.isPointOnSegment(a, b, normalPoint)) {
                 distance = BABYLON.Vector3.Distance(this.predictpos, normalPoint)
                 
             } else {
-
+                
                 const distanceA = BABYLON.Vector3.Distance(this.predictpos, a)
                 const distanceB = BABYLON.Vector3.Distance(this.predictpos, b)
                 distance = Math.min(distanceA, distanceB)
                 normalPoint = distanceA < distanceB ? a : b
+                
             }
 
             var distance = BABYLON.Vector3.Distance(this.predictpos, normalPoint)
-
 
             if (distance < worldRecord) {
                 worldRecord = distance;
@@ -60,15 +61,17 @@ export default class PathBehaviour extends Behaviour {
                 
                 var dir = b.subtract(a)
                 dir.normalize();
-                dir = dir.scale(10);
+                dir = dir.scale(10*(1-1/distance));
                 this.targetP = this.normal.clone().add(dir)
-
-
+                
+                
             }
         }
 
         if (worldRecord > this.radiusPath) {
             this.t.run(this.targetP)
+        }else{
+            this.t.applyForce(new BABYLON.Vector3(0,0,0))
         }
 
     }

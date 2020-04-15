@@ -11,7 +11,10 @@ var selectedEntity = false;
 var pursuers = []
 var checkboxGUI = []
 var namesPursuers = [];
+var mouseTargeted=false;
 var UiPanelSelection;
+var UiPanelTarget;
+var mouseTarget;
 var UiPanel;
 var advancedTexture;
 var colorVectors = {
@@ -51,9 +54,7 @@ var createScene = function () {
     materialShip.diffuseColor = new BABYLON.Color3(1, 0, 0); //Red
 
     /** Target */
-    var target = BABYLON.MeshBuilder.CreateBox("myBox", { height: 60, width: 60, depth: 60 }, scene);
-    target.position.y = 25
-    target.material = materialShip
+    var target = new BABYLON.Vector3(0,0,0);
 
 
     // UI
@@ -80,6 +81,15 @@ var createScene = function () {
     UiPanel.addControl(buttonSelect)
     UiPanel.addControl(buttonStop)
 
+
+    window.addEventListener("mousemove", function () {  
+        var pickResult = scene.pick(scene.pointerX, scene.pointerY);
+        if(mouseTargeted){
+            mouseTarget = pickResult.pickedPoint
+        }else{
+            mouseTarget = new BABYLON.Vector3(0,0,0)
+        }
+    });
 
 
     buttonStart.onPointerDownObservable.add(function () {
@@ -293,13 +303,56 @@ var createScene = function () {
 
     });
 
+    // UI TARGET
+
+    
+    UiPanelTarget = new BABYLON.GUI.StackPanel();
+    UiPanelTarget.width = "220px";
+    UiPanelTarget.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    UiPanelTarget.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    advancedTexture.addControl(UiPanelTarget);
+
+    
+
+    var checkboxMouse = new BABYLON.GUI.Checkbox();
+    checkboxMouse.width = "30px";
+    checkboxMouse.height = "30px";
+    checkboxMouse.isChecked = false;
+    checkboxMouse.color = "green"
+    UiPanelTarget.addControl(checkboxMouse)
+
+    
+    var mouseText = new BABYLON.GUI.TextBlock();
+    mouseText.text = "target the mouse"
+    mouseText.height = "20px"
+    mouseText.marginRight = "5px";
+    mouseText.fontWeight = "bold"
+    mouseText.color = "green"
+    UiPanelTarget.addControl(mouseText)
+
+    checkboxMouse.onIsCheckedChangedObservable.add(function (value) {
+        if (value) {
+            mouseTargeted=true;
+        } else {
+            mouseTargeted=false;
+        }
+    });
+
+    
+
 
     //UPDATE PURSUERS
     var time = 0;
     var radius = 300
     scene.registerAfterRender(function () {
-        target.position.x = Math.cos(time / 25) * Math.sin((time / 25) * 0.8) * radius;
-        target.position.z = Math.sin((time / 25) * 0.5) * radius;
+        
+        if(mouseTarget!=undefined){
+            
+            target.x = mouseTarget.x
+            target.z = mouseTarget.z
+            
+
+        }
 
 
         if (pursuerCreated === true && selectedEntity === false) {
@@ -307,13 +360,14 @@ var createScene = function () {
                 var directionRotation = (pursuers[i].velocity.clone()).normalize()
                 directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
 
-                // Update pursuers
+                // Update pursuers  
+                target.y=pursuers[i].position.y
                 pursuers[i].mesh.rotation.x = Math.PI / 2;
                 pursuers[i].mesh.rotation.z = Math.PI / 2;
                 pursuers[i].mesh.rotation.y = directionRotation
 
                 pursuers[i].separate(pursuers)
-                pursuers[i].run(target.position)
+                pursuers[i].run(target)
                 pursuers[i].update()
 
 

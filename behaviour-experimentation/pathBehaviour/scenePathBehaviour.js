@@ -42,7 +42,6 @@ var createPath = () => {
     let mX = 600
     let mZ = 900
     var step = 100;
-
     var paths = []
     
     for (let i = -900; i <= -mX + mX / 2; i += step) {
@@ -69,6 +68,8 @@ var createPath = () => {
     for (let i = mX; i >= -200; i -= step) {
         paths.push(new BABYLON.Vector3(mZ, 0, i))
     }
+
+   
 
     return paths
 
@@ -128,7 +129,6 @@ var createScene = function () {
         entity.checkCollisions = true
         entity.position.y = 1
         entity.position.z = -200
-
         entity.position.x = -900
 
         target = BABYLON.Mesh.CreateCylinder("target", 2, 0, 1, 6, 1, scene, false);
@@ -140,10 +140,10 @@ var createScene = function () {
         target = new Behaviour(target)
         pathBehaviourEntity = new PathBehaviour(entity)
 
-        pathBehaviourEntity.maxSpeed = paramsGUI[0].anim.toFixed(2)
-        pathBehaviourEntity.maxForce = paramsGUI[1].anim.toFixed(2)
-        pathBehaviourEntity.mass = paramsGUI[2].anim.toFixed(2)
-        pathBehaviourEntity.desiredSeparation = paramsGUI[3].anim.toFixed(2)
+        pathBehaviourEntity.t.maxSpeed = paramsGUI[0].anim.toFixed(2)
+        pathBehaviourEntity.t.maxForce = paramsGUI[1].anim.toFixed(2)
+        pathBehaviourEntity.t.mass = paramsGUI[2].anim.toFixed(2)
+        pathBehaviourEntity.t.desiredSeparation = paramsGUI[3].anim.toFixed(2)
 
 
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
@@ -348,7 +348,6 @@ var createScene = function () {
 
 
     var track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
-    console.log(track)
 
     track.color = new BABYLON.Color3(1, 0, 0);
 
@@ -361,12 +360,15 @@ var createScene = function () {
             for (let i = 0; i < entities.length; i++) {
 
                 // Update entities
+                
+                entities[i].separate(entities)
                 entities[i].run(paths)
                 var directionRotation1 = (entities[i].t.velocity.clone()).normalize()
                 var rotationY = Math.atan2(directionRotation1.z, -directionRotation1.x)
                 entities[i].t.mesh.rotation.x = Math.PI / 2
                 entities[i].t.mesh.rotation.z = Math.PI / 2
                 entities[i].t.mesh.rotation.y = rotationY
+            
                 entities[i].t.update()
 
                 // Update targets
