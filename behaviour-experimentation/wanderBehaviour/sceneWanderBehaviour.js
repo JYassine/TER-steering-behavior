@@ -17,7 +17,7 @@ var colorVectors = {
 }
 var checkboxGUI = []
 var entities = []
-var nameEntities=[]
+var nameEntities = []
 var ground;
 var target;
 var UiPanel;
@@ -112,7 +112,7 @@ var createScene = function () {
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
         dynamicTexture.hasAlpha = true;
         dynamicTexture.drawText(wanderBehaviour.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
-        var xChar = Utilities.createText(dynamicTexture, 70,scene);
+        var xChar = Utilities.createText(dynamicTexture, 70, scene);
         xChar.position = wanderBehaviour.position.clone()
         nameEntities.push(xChar);
 
@@ -146,7 +146,7 @@ var createScene = function () {
         circlesWanders.forEach(circle => {
             circle.dispose()
         })
-        
+
         if (UiPanelSelection != undefined) {
             UiPanelSelection.dispose()
         }
@@ -156,18 +156,50 @@ var createScene = function () {
             "wanderDistance": [],
             "wanderRadius": []
         }
-        nameEntities.forEach(n=>{
+        nameEntities.forEach(n => {
             n.dispose()
         })
-        nameEntities=[]
+        nameEntities = []
         entitiesCreated = false
-        selectedEntity=false
-        checkboxGUI.forEach(child => {
-            if (child.isEnabled === true) {
-                child.isEnabled = false
-                child.isChecked = false
+        selectedEntity = false
+        checkboxGUI.forEach(checkbox => {
+            if (checkbox.isEnabled === true) {
+                checkbox.isEnabled = false
+                checkbox.isChecked = false
             }
+
+            checkbox.onIsCheckedChangedObservable.add(function (value) {
+                if (value) {
+                    checkboxGUI.forEach(child => {
+                        if (child.isChecked) {
+                            if (decorVectors[child.name].length > 0) {
+                                decorVectors[child.name].forEach(v => {
+
+                                    v.meshVisualization.isVisible = true
+
+                                })
+                            }
+                        }
+                    })
+
+                } else {
+                    checkboxGUI.forEach(child => {
+                        if (child.isChecked === false) {
+                            if (decorVectors[child.name].length > 0) {
+                                decorVectors[child.name].forEach(v => {
+                                    v.meshVisualization.isVisible = false
+                                })
+                            }
+                        }
+                    })
+
+                }
+            });
+
         })
+
+
+
     });
 
 
@@ -248,7 +280,7 @@ var createScene = function () {
             p.mesh.material = materialSelected
 
         })
-        
+
         Utilities.updateTextMesh(entities[i].name, namesPursuers[i], scene);
 
     });
@@ -280,7 +312,7 @@ var createScene = function () {
                 decorVectors["wanderDistance"][i].update(entities[i].wanderCenter)
                 var directionRotationCenter = (entities[i].wanderCenter.clone()).normalize()
                 var drCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
-                
+
                 // Update the visualization of circles 
                 circlesWanders[i].position = entities[i].wanderCenter.clone().add(entities[i].position.clone())
                 circlesWanders[i].locallyTranslate(new BABYLON.Vector3(-28 * entities[i].wanderDistance, 0, 0))
@@ -294,8 +326,8 @@ var createScene = function () {
                 decorVectors["wanderRadius"][i].origin = circlesWanders[i].position.clone()
                 decorVectors["wanderRadius"][i].origin.y += 5
                 decorVectors["wanderRadius"][i].update(entities[i].displacement)
-                
-                
+
+
                 //Update name of entities
                 nameEntities[i].dispose()
                 nameEntities[i].position = entities[i].position.clone()

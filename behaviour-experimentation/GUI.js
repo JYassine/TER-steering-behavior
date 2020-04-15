@@ -123,8 +123,9 @@ var GUI = {
                         if (child.isChecked) {
                             if (decorVectors[child.name].length > 0) {
                                 decorVectors[child.name].forEach(v => {
-
+                                    
                                     v.meshVisualization.isVisible = true
+
                                 })
                             }
                         }

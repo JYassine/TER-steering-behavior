@@ -6,6 +6,7 @@ export default class PathBehaviour extends Behaviour {
     constructor(mesh) {
         super(mesh)
         this.radiusPath=2
+        
         this.t = new SeekBehaviour(this.mesh)
         this.t.maxSpeed = 5
         this.t.maxForce = 10

@@ -102,7 +102,7 @@ var createScene = function () {
         seekBehaviour.desiredSeparation = paramsGUI[3].anim.toFixed(2)
 
 
-        
+
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
         dynamicTexture.hasAlpha = true;
         dynamicTexture.drawText(seekBehaviour.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
@@ -148,19 +148,20 @@ var createScene = function () {
 
 
     buttonStop.onPointerDownObservable.add(function () {
-        pursuers.forEach(p => {
-            p.getMesh().dispose()
-        });
+
+
+        for (let i = 0; i < pursuers.length; i++) {
+            pursuers[i].getMesh().dispose()
+            namesPursuers[i].dispose();
+        }
         for (var decorVector in decorVectors) {
             decorVectors[decorVector].forEach(dc => {
                 dc.meshVisualization.dispose()
             })
         }
-        namesPursuers.forEach(name => {
-            name.dispose()
-        })
 
         pursuers = []
+
         namesPursuers = []
         decorVectors = {
             "maxSpeed": [],
@@ -169,12 +170,43 @@ var createScene = function () {
         }
         pursuerCreated = false
         selectedEntity = false;
-        checkboxGUI.forEach(child => {
-            if (child.isEnabled === true) {
-                child.isEnabled = false
-                child.isChecked = false
+        checkboxGUI.forEach(checkbox => {
+            if (checkbox.isEnabled === true) {
+                checkbox.isEnabled = false
+                checkbox.isChecked = false
             }
+
+            checkbox.onIsCheckedChangedObservable.add(function (value) {
+                if (value) {
+                    checkboxGUI.forEach(child => {
+                        if (child.isChecked) {
+                            if (decorVectors[child.name].length > 0) {
+                                decorVectors[child.name].forEach(v => {
+
+                                    v.meshVisualization.isVisible = true
+
+                                })
+                            }
+                        }
+                    })
+
+                } else {
+                    checkboxGUI.forEach(child => {
+                        if (child.isChecked === false) {
+                            if (decorVectors[child.name].length > 0) {
+                                decorVectors[child.name].forEach(v => {
+                                    v.meshVisualization.isVisible = false
+                                })
+                            }
+                        }
+                    })
+
+                }
+            });
+
         })
+
+        
     });
 
     buttonSelect.onPointerDownObservable.add(function () {
@@ -225,25 +257,26 @@ var createScene = function () {
 
                 UiPanelSelection.addControl(buttonDone);
 
-                buttonDone.onPointerDownObservable.add(function () {
+
+                buttonDone.onPointerDownObservable.add(function (e) {
 
                     selectedEntity = false
                     UiPanelSelection.dispose()
                     UiPanelSelection = undefined
 
-
+                    entity.name= inputName.text
                     var materialSelected = new BABYLON.StandardMaterial("selectedEntity", scene);
                     materialSelected.diffuseColor = new BABYLON.Color3(1, 0, 0);
+                    for (let i = 0; i < namesPursuers.length; i++) {
+                        Utilities.updateTextMesh(pursuers[i].name, namesPursuers[i], scene);
+                        
+                        pursuers[i].mesh.material = materialSelected
 
-                    Utilities.updateTextMesh(pursuers[i].name, namesPursuers[i], scene);
-                    pursuers.forEach(p => {
-                        p.mesh.material = materialSelected
-                        entity.name = inputName.text
+                    }
 
-                    })
+
+
                 });
-
-
 
 
             }));
