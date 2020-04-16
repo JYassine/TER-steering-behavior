@@ -54,7 +54,6 @@ var GUI = {
             header.height = height;
             header.color = "yellow";
             header.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-            header.paddingTop = "10px";
 
             UiPanel.addControl(header);
             var slider = new BABYLON.GUI.Slider();
@@ -115,29 +114,31 @@ var GUI = {
             checkbox.name = vectorName
             checkbox.isChecked = false;
             checkbox.color = Object.keys(colorVectors)[i];
-            checkbox.isEnabled = false;
+            checkbox.isEnabled = true;
 
             checkbox.onIsCheckedChangedObservable.add(function (value) {
                 if (value) {
                     checkboxGUI.forEach(child => {
                         if (child.isChecked) {
-                            if (decorVectors[child.name].length > 0) {
+                            if (decorVectors[child.name] !== undefined) {
                                 decorVectors[child.name].forEach(v => {
-                                    
                                     v.meshVisualization.isVisible = true
 
                                 })
+
                             }
+
                         }
                     })
 
                 } else {
                     checkboxGUI.forEach(child => {
                         if (child.isChecked === false) {
-                            if (decorVectors[child.name].length > 0) {
+                            if (decorVectors[child.name] !== undefined) {
                                 decorVectors[child.name].forEach(v => {
                                     v.meshVisualization.isVisible = false
                                 })
+
                             }
                         }
                     })
