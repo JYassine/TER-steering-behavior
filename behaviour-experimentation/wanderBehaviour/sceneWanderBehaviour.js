@@ -1,5 +1,6 @@
 import WanderBehaviour from "./WanderBehaviour.js";
-import DecorBehaviour from "../DecorBehaviour.js";
+import DecorVector from "../DecorVector.js";
+import DecorCircle from "../DecorCircle.js";
 import GUI from "../GUI.js";
 import Utilities from "../Utilities.js";
 
@@ -32,21 +33,6 @@ var paramsGUI = [
     { name: "wanderRadius", anim: 2, weight: 2 },
     { name: "desiredSeparation", anim: 300, weight: 300 }
 ]
-
-var createCircleWanders = () => {
-
-    var circle = BABYLON.MeshBuilder.CreateCylinder("cone", { diameter: 100, tessellation: 50 }, scene);
-
-    var materialCircle = new BABYLON.StandardMaterial("shiptx1", scene);
-    materialCircle.diffuseColor = new BABYLON.Color3(0, 1, 0); //green
-    circle.material = materialCircle
-
-    circle.isVisible = false;
-
-    circlesWanders.push(circle)
-
-}
-
 
 
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
@@ -96,13 +82,16 @@ var createScene = function () {
         entity.position.y = 20
 
 
-        createCircleWanders()
+        
+        var circle = new DecorCircle(BABYLON.Vector3.Zero(),50,scene)
+        circle.create(new BABYLON.Color3(0,1,0),false)
+        circlesWanders.push(circle)
         /** Seek behaviour */
         var wanderBehaviour = new WanderBehaviour(entity)
-        var decorDistance = new DecorBehaviour(wanderBehaviour.position)
-        var decorRadius = new DecorBehaviour(circlesWanders[circlesWanders.length - 1].position)
-        decorDistance.createVector(100, new BABYLON.Color3(1, 0, 0), scene, false)
-        decorRadius.createVector(100, new BABYLON.Color3(0, 0, 1), scene, false)
+        var decorDistance = new DecorVector(wanderBehaviour.position,100,scene)
+        var decorRadius = new DecorVector(circlesWanders[circlesWanders.length - 1].meshVisualization.position,100,scene)
+        decorDistance.create(new BABYLON.Color3(1, 0, 0), false)
+        decorRadius.create(new BABYLON.Color3(0, 0, 1), false)
         decorVectors["wanderDistance"].push(decorDistance)
         decorVectors["wanderRadius"].push(decorRadius)
         wanderBehaviour.wanderDistance = paramsGUI[0].anim.toFixed(2)
@@ -310,23 +299,18 @@ var createScene = function () {
 
                 //Update the visualization of vectors
                 decorVectors["wanderDistance"][i].update(entities[i].wanderCenter)
-                var directionRotationCenter = (entities[i].wanderCenter.clone()).normalize()
-                var drCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
-
-                // Update the visualization of circles 
-                circlesWanders[i].position = entities[i].wanderCenter.clone().add(entities[i].position.clone())
-                circlesWanders[i].locallyTranslate(new BABYLON.Vector3(-28 * entities[i].wanderDistance, 0, 0))
-                circlesWanders[i].rotation.y = drCenter
-                if (checkboxGUI[1].isChecked) {
-                    circlesWanders[i].isVisible = true;
-                } else {
-                    circlesWanders[i].isVisible = false;
-                }
-
-                decorVectors["wanderRadius"][i].origin = circlesWanders[i].position.clone()
+                decorVectors["wanderRadius"][i].origin = circlesWanders[i].meshVisualization.position.clone()
                 decorVectors["wanderRadius"][i].origin.y += 5
                 decorVectors["wanderRadius"][i].update(entities[i].displacement)
 
+                // Update the visualization of circles 
+                
+                circlesWanders[i].update(entities[i])
+                if (checkboxGUI[1].isChecked) {
+                    circlesWanders[i].meshVisualization.isVisible = true;
+                } else {
+                    circlesWanders[i].meshVisualization.isVisible = false;
+                }
 
                 //Update name of entities
                 nameEntities[i].dispose()

@@ -1,8 +1,9 @@
 import SeekBehaviour from "./SeekBehaviour.js";
-import DecorBehaviour from "../DecorBehaviour.js";
 import Utilities from "../Utilities.js";
 import WanderBehaviour from "../wanderBehaviour/WanderBehaviour.js"
 import GUI from "../GUI.js"
+import DecorCircle from "../DecorCircle.js";
+import DecorVector from "../DecorVector.js";
 
 var canvas = document.getElementById("renderCanvas");
 var engine = null;
@@ -56,20 +57,6 @@ var paramsGUIWander = [
     { name: "maxSpeed", anim: 6, weight: 6 },
     { name: "maxForce", anim: 30, weight: 30 }, 
 ]
-
-var createCircleWanders = () => {
-
-    var circle = BABYLON.MeshBuilder.CreateCylinder("cone", { diameter: 100, tessellation: 50 }, scene);
-
-    var materialCircle = new BABYLON.StandardMaterial("shiptx1", scene);
-    materialCircle.diffuseColor = new BABYLON.Color3(0, 1, 0); //green
-    circle.material = materialCircle
-
-    circle.isVisible = false;
-
-    circlesWanders.push(circle)
-
-}
 
 
 
@@ -157,20 +144,16 @@ var createScene = function () {
 
         namesPursuers.push(xChar);
 
-
-
-
         //Vector of seek behaviours
-        var decorMaxSpeed = new DecorBehaviour(seekBehaviour.mesh.position)
-        var decorMaxForce = new DecorBehaviour(seekBehaviour.mesh.position)
-        var decorVelocity = new DecorBehaviour(seekBehaviour.mesh.position)
-        decorMaxSpeed.createVector(100, colorVectors[Object.keys(colorVectors)[0]], scene, false)
-        decorMaxForce.createVector(100, colorVectors[Object.keys(colorVectors)[1]], scene, false)
-        decorVelocity.createVector(100, colorVectors[Object.keys(colorVectors)[2]], scene, false)
+        var decorMaxSpeed = new DecorVector(seekBehaviour.mesh.position,100,scene)
+        var decorMaxForce = new DecorVector(seekBehaviour.mesh.position,100,scene)
+        var decorVelocity = new DecorVector(seekBehaviour.mesh.position,100,scene)
+        decorMaxSpeed.create(colorVectors[Object.keys(colorVectors)[0]], false)
+        decorMaxForce.create(colorVectors[Object.keys(colorVectors)[1]], false)
+        decorVelocity.create(colorVectors[Object.keys(colorVectors)[2]], false)
         decorVectors["maxSpeed"].push(decorMaxSpeed)
         decorVectors["maxForce"].push(decorMaxForce)
         decorVectors["velocity"].push(decorVelocity)
-
 
         pursuers.push(seekBehaviour)
         pursuerCreated = true
@@ -383,11 +366,13 @@ var createScene = function () {
         wTarget.position.y = 0
         wanderTarget = new WanderBehaviour(wTarget)
 
-        createCircleWanders()
-        var decorDistance = new DecorBehaviour(wanderTarget.position)
-        var decorRadius = new DecorBehaviour(circlesWanders[circlesWanders.length - 1].position)
-        decorDistance.createVector(100, new BABYLON.Color3(1, 0, 0), scene, false)
-        decorRadius.createVector(100, new BABYLON.Color3(0, 0, 1), scene, false)
+        var circleDecor = new DecorCircle(BABYLON.Vector3.Zero(),50,scene)
+        circleDecor.create(new BABYLON.Color3(0,1,0),false)
+        circlesWanders.push(circleDecor)
+        var decorDistance = new DecorVector(wanderTarget.position,100,scene)
+        var decorRadius = new DecorVector(circlesWanders[circlesWanders.length - 1].meshVisualization.position,100,scene)
+        decorDistance.create(new BABYLON.Color3(1, 0, 0), false)
+        decorRadius.create(new BABYLON.Color3(0, 0, 1), false)
 
         decorVectorsWander["wanderDistance"].push(decorDistance)
         decorVectorsWander["wanderRadius"].push(decorRadius)
@@ -437,7 +422,7 @@ var createScene = function () {
 
                 wanderTarget.mesh.dispose()
                 wanderTarget = undefined
-                circlesWanders[0].dispose()
+                circlesWanders[0].meshVisualization.dispose()
                 circlesWanders = []
                 checkboxGUI.length -= 2
                 for (var decorVector in decorVectorsWander) {
@@ -495,22 +480,17 @@ var createScene = function () {
             wanderTarget.update()
 
             decorVectorsWander["wanderDistance"][0].update(wanderTarget.wanderCenter)
-            var directionRotationCenter = (wanderTarget.wanderCenter.clone()).normalize()
-            var drCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
-
 
             // Update the visualization of circles 
-            circlesWanders[0].position = wanderTarget.wanderCenter.clone().add(wanderTarget.position.clone())
-            circlesWanders[0].locallyTranslate(new BABYLON.Vector3(-28 * wanderTarget.wanderDistance, 0, 0))
-            circlesWanders[0].rotation.y = drCenter
+            circlesWanders[0].update(wanderTarget)
             if (checkboxGUI[4].isChecked) {
-                circlesWanders[0].isVisible = true;
+                circlesWanders[0].meshVisualization.isVisible = true;
             } else {
-                circlesWanders[0].isVisible = false;
+                circlesWanders[0].meshVisualization.isVisible = false;
             }
 
 
-            decorVectorsWander["wanderRadius"][0].origin = circlesWanders[0].position.clone()
+            decorVectorsWander["wanderRadius"][0].origin = circlesWanders[0].meshVisualization.position.clone()
             decorVectorsWander["wanderRadius"][0].origin.y += 5
             decorVectorsWander["wanderRadius"][0].update(wanderTarget.displacement)
 
