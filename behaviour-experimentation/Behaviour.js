@@ -66,6 +66,16 @@ export default class Behaviour {
         }
     }
 
+    rotate(){
+        
+        var directionRotation = (this.velocity.clone()).normalize()
+        var dR = Math.atan2(directionRotation.z, -directionRotation.x)
+
+        this.mesh.rotation.x = Math.PI / 2;
+        this.mesh.rotation.z = Math.PI / 2;
+        this.mesh.rotation.y = dR
+    }
+
     update() {
 
         this.velocity.addInPlace(this.acceleration);

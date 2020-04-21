@@ -501,15 +501,10 @@ var createScene = function () {
 
         if (pursuerCreated === true && selectedEntity === false) {
             for (let i = 0; i < pursuers.length; i++) {
-                var directionRotation = (pursuers[i].velocity.clone()).normalize()
-                directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
 
                 // Update pursuers  
                 target.y = pursuers[i].position.y
-                pursuers[i].mesh.rotation.x = Math.PI / 2;
-                pursuers[i].mesh.rotation.z = Math.PI / 2;
-                pursuers[i].mesh.rotation.y = directionRotation
-
+                pursuers[i].rotate()
                 pursuers[i].separate(pursuers)
                 pursuers[i].run(target)
                 pursuers[i].update()

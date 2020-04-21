@@ -286,13 +286,7 @@ var createScene = function () {
 
         if (entitiesCreated === true && selectedEntity === false) {
             for (let i = 0; i < entities.length; i++) {
-                var directionRotation = (entities[i].velocity.clone()).normalize()
-                var dR = Math.atan2(directionRotation.z, -directionRotation.x)
-
-                // Update entities
-                entities[i].mesh.rotation.x = Math.PI / 2;
-                entities[i].mesh.rotation.z = Math.PI / 2;
-                entities[i].mesh.rotation.y = dR
+                entities[i].rotate()
                 entities[i].separate(entities)
                 entities[i].run(target)
                 entities[i].update()
