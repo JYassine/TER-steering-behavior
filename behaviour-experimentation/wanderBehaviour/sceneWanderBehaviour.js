@@ -1,7 +1,7 @@
 import WanderBehaviour from "./WanderBehaviour.js";
-import DecorVector from "../DecorVector.js";
-import DecorCircle from "../DecorCircle.js";
-import GUI from "../GUI.js";
+import DecorVector from "../GUI/DecorVector.js";
+import DecorCircle from "../GUI/DecorCircle.js";
+import GUI from "../GUI/GUI.js";
 import Utilities from "../Utilities.js";
 
 var canvas = document.getElementById("renderCanvas");

@@ -1,9 +1,8 @@
-
 import PathBehaviour from "./PathBehaviour.js";
 import Behaviour from "../Behaviour.js";
-import GUI from "../GUI.js"
+import GUI from "../GUI/GUI.js"
 import Utilities from "../Utilities.js"
-import DecorBehaviour from "../DecorBehaviour.js"
+import DecorVector from "../GUI/DecorVector.js"
 var canvas = document.getElementById("renderCanvas");
 
 var engine = null;
@@ -23,6 +22,7 @@ var colorVectors = {
     "yellow": new BABYLON.Color3(1, 1, 0),
     "blue": new BABYLON.Color3(0, 0, 1)
 }
+var radiusPath = 8
 var decorVectors = {
     "maxSpeed": [],
     "maxForce": [],
@@ -32,32 +32,84 @@ var checkboxGUI = []
 var paramsGUI = [
     { name: "maxSpeed", anim: 15, weight: 15 },
     { name: "maxForce", anim: 30, weight: 30 },
-    { name: "mass", anim: 200, weight: 200 },
-    { name: "desiredSeparation", anim: 300, weight: 300 }
+    { name: "mass", anim: 60, weight: 60 },
+    { name: "desiredSeparation", anim: 50, weight: 50 }
 ]
 
 
-var createPath = () => {
+var createPath = (scene) => {
 
     let mX = 600
     let mZ = 900
     var step = 100;
     var paths = []
+    BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
+
+        mesh[0].position = new BABYLON.Vector3(-mZ+100, 0, 0)
+        mesh[0].rotate(BABYLON.Axis.Y, Math.PI/2, BABYLON.Space.LOCAL)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+
+
+    });
+
+    BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
+
+        mesh[0].position = new BABYLON.Vector3(-300, 0, 55)
+        mesh[0].rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+
+
+    });
+
+    BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
+
+        mesh[0].position = new BABYLON.Vector3(-230, 0, 550)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+
+
+    });
+
+    BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
+
+        mesh[0].position = new BABYLON.Vector3(300, 0, 605)
+        mesh[0].rotate(BABYLON.Axis.Y, Math.PI/2, BABYLON.Space.LOCAL)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+
+
+    });
+
+    BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
+
+        mesh[0].position = new BABYLON.Vector3(825, 0, 570)
+        mesh[0].rotate(BABYLON.Axis.Y, Math.PI/2, BABYLON.Space.LOCAL)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+
+
+    });
+
+    BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
+
+        mesh[0].position = new BABYLON.Vector3(880, 0, 30)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+
+
+    });
+
+
     
+
     for (let i = -900; i <= -mX + mX / 2; i += step) {
         paths.push(new BABYLON.Vector3(i, 0, 0))
+        
     }
 
-    for (let i = 0; i < mZ / 2; i += step) {
+    for (let i = 0; i < mZ -250; i += step) {
         paths.push(new BABYLON.Vector3(-mX + mX / 2, 0, i))
-    }
-
-    for (let i = 0; i < mX / 2; i += step) {
-        paths.push(new BABYLON.Vector3(i, 0, mX / 2))
+       
     }
 
 
-    for (let i = 200; i < mX; i += step) {
+    for (let i = 800; i < mX; i += step) {
         paths.push(new BABYLON.Vector3(mX, 0, i))
     }
 
@@ -69,7 +121,7 @@ var createPath = () => {
         paths.push(new BABYLON.Vector3(mZ, 0, i))
     }
 
-   
+
 
     return paths
 
@@ -88,7 +140,7 @@ var createScene = function () {
     light.intensity = 0.5;
 
 
-    ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 2000, height: 2000 }, scene);
+    ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 3000, height: 3000 }, scene);
 
     var materialShip = new BABYLON.StandardMaterial("shiptx1", scene);
     materialShip.diffuseColor = new BABYLON.Color3(1, 0, 0); //Red
@@ -106,6 +158,7 @@ var createScene = function () {
 
     GUI.displayChangeParametersEntities("70px", paramsGUI, ts, UiPanel)
     GUI.displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors)
+
 
 
     // BUTTONS TO STOP / START / SELECT ENTITIES
@@ -139,6 +192,7 @@ var createScene = function () {
 
         target = new Behaviour(target)
         pathBehaviourEntity = new PathBehaviour(entity)
+        pathBehaviourEntity.radiusPath=radiusPath/4
 
         pathBehaviourEntity.t.maxSpeed = paramsGUI[0].anim.toFixed(2)
         pathBehaviourEntity.t.maxForce = paramsGUI[1].anim.toFixed(2)
@@ -157,12 +211,12 @@ var createScene = function () {
 
 
         //Vector of seek behaviours
-        var decorMaxSpeed = new DecorBehaviour(pathBehaviourEntity.mesh.position)
-        var decorMaxForce = new DecorBehaviour(pathBehaviourEntity.mesh.position)
-        var decorVelocity = new DecorBehaviour(pathBehaviourEntity.mesh.position)
-        decorMaxSpeed.createVector(100, colorVectors[Object.keys(colorVectors)[0]], scene, false)
-        decorMaxForce.createVector(100, colorVectors[Object.keys(colorVectors)[1]], scene, false)
-        decorVelocity.createVector(100, colorVectors[Object.keys(colorVectors)[2]], scene, false)
+        var decorMaxSpeed = new DecorVector(pathBehaviourEntity.mesh.position, 100, scene)
+        var decorMaxForce = new DecorVector(pathBehaviourEntity.mesh.position, 100, scene)
+        var decorVelocity = new DecorVector(pathBehaviourEntity.mesh.position, 100, scene)
+        decorMaxSpeed.create(colorVectors[Object.keys(colorVectors)[0]], false)
+        decorMaxForce.create(colorVectors[Object.keys(colorVectors)[1]], false)
+        decorVelocity.create(colorVectors[Object.keys(colorVectors)[2]], false)
         decorVectors["maxSpeed"].push(decorMaxSpeed)
         decorVectors["maxForce"].push(decorMaxForce)
         decorVectors["velocity"].push(decorVelocity)
@@ -344,12 +398,12 @@ var createScene = function () {
 
 
 
-    var paths = createPath()
+    var paths = createPath(scene)
 
 
     var track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
 
-    track.color = new BABYLON.Color3(1, 0, 0);
+    track.color = new BABYLON.Color3(1, 1, 1);
 
 
 
@@ -360,15 +414,10 @@ var createScene = function () {
             for (let i = 0; i < entities.length; i++) {
 
                 // Update entities
-                
-                entities[i].separate(entities)
+
+                entities[i].t.rotate()
+                entities[i].t.separate(entities)
                 entities[i].run(paths)
-                var directionRotation1 = (entities[i].t.velocity.clone()).normalize()
-                var rotationY = Math.atan2(directionRotation1.z, -directionRotation1.x)
-                entities[i].t.mesh.rotation.x = Math.PI / 2
-                entities[i].t.mesh.rotation.z = Math.PI / 2
-                entities[i].t.mesh.rotation.y = rotationY
-            
                 entities[i].t.update()
 
                 // Update targets

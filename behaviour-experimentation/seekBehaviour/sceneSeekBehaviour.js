@@ -1,9 +1,9 @@
 import SeekBehaviour from "./SeekBehaviour.js";
 import Utilities from "../Utilities.js";
 import WanderBehaviour from "../wanderBehaviour/WanderBehaviour.js"
-import GUI from "../GUI.js"
-import DecorCircle from "../DecorCircle.js";
-import DecorVector from "../DecorVector.js";
+import GUI from "../GUI/GUI.js"
+import DecorCircle from "../GUI/DecorCircle.js";
+import DecorVector from "../GUI/DecorVector.js";
 
 var canvas = document.getElementById("renderCanvas");
 var engine = null;
