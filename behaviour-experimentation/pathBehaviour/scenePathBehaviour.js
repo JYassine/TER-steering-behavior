@@ -16,13 +16,20 @@ var advancedTexture;
 var nameEntities = []
 var ts = []
 var UiPanel;
+var UiPanelEditMap;
 var targets = []
+var mouseTarget;
+var imageStreet
+var track;
+var suppressImage = false;
+var imageStreetPosed = false;
+var mapEdit = []
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "yellow": new BABYLON.Color3(1, 1, 0),
     "blue": new BABYLON.Color3(0, 0, 1)
 }
-var radiusPath = 8
+var radiusPath = 3
 var decorVectors = {
     "maxSpeed": [],
     "maxForce": [],
@@ -45,9 +52,9 @@ var createPath = (scene) => {
     var paths = []
     BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
 
-        mesh[0].position = new BABYLON.Vector3(-mZ+100, 0, 0)
-        mesh[0].rotate(BABYLON.Axis.Y, Math.PI/2, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+        mesh[0].position = new BABYLON.Vector3(-mZ + 100, 0, 0)
+        mesh[0].rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
 
 
     });
@@ -56,7 +63,7 @@ var createPath = (scene) => {
 
         mesh[0].position = new BABYLON.Vector3(-300, 0, 55)
         mesh[0].rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
 
 
     });
@@ -64,7 +71,7 @@ var createPath = (scene) => {
     BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
 
         mesh[0].position = new BABYLON.Vector3(-230, 0, 550)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
 
 
     });
@@ -72,8 +79,8 @@ var createPath = (scene) => {
     BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
 
         mesh[0].position = new BABYLON.Vector3(300, 0, 605)
-        mesh[0].rotate(BABYLON.Axis.Y, Math.PI/2, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+        mesh[0].rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
 
 
     });
@@ -81,8 +88,8 @@ var createPath = (scene) => {
     BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
 
         mesh[0].position = new BABYLON.Vector3(825, 0, 570)
-        mesh[0].rotate(BABYLON.Axis.Y, Math.PI/2, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+        mesh[0].rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
 
 
     });
@@ -90,22 +97,23 @@ var createPath = (scene) => {
     BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
 
         mesh[0].position = new BABYLON.Vector3(880, 0, 30)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath,radiusPath,radiusPath)
+        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
+
 
 
     });
 
 
-    
+
 
     for (let i = -900; i <= -mX + mX / 2; i += step) {
         paths.push(new BABYLON.Vector3(i, 0, 0))
-        
+
     }
 
-    for (let i = 0; i < mZ -250; i += step) {
+    for (let i = 0; i < mZ - 250; i += step) {
         paths.push(new BABYLON.Vector3(-mX + mX / 2, 0, i))
-       
+
     }
 
 
@@ -127,26 +135,41 @@ var createPath = (scene) => {
 
 }
 
+
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
 
+
+
     var scene = new BABYLON.Scene(engine);
 
-    var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(-1500, 2000, 40), scene);
+    var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(-1500, 500, 40), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
 
     camera.attachControl(canvas, true);
     var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-    light.intensity = 0.5;
+    light.intensity = 0.7;
 
-
+    var gridMaterial = new BABYLON.GridMaterial("grid", scene);
     ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 3000, height: 3000 }, scene);
+    gridMaterial.gridRatio = 4
+
 
     var materialShip = new BABYLON.StandardMaterial("shiptx1", scene);
     materialShip.diffuseColor = new BABYLON.Color3(1, 0, 0); //Red
 
+
+    var materialTileMap = new BABYLON.StandardMaterial("shiptx1", scene);
+    materialTileMap.diffuseColor = new BABYLON.Color3(0, 0, 1); //Red
+
     advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     UiPanel = new BABYLON.GUI.StackPanel();
+
+    window.addEventListener("mousemove", function () {
+        var pickResult = scene.pick(scene.pointerX, scene.pointerY);
+        mouseTarget = pickResult.pickedPoint
+
+    });
 
 
     UiPanel.width = "220px";
@@ -192,7 +215,7 @@ var createScene = function () {
 
         target = new Behaviour(target)
         pathBehaviourEntity = new PathBehaviour(entity)
-        pathBehaviourEntity.radiusPath=radiusPath/4
+        pathBehaviourEntity.radiusPath = 40
 
         pathBehaviourEntity.t.maxSpeed = paramsGUI[0].anim.toFixed(2)
         pathBehaviourEntity.t.maxForce = paramsGUI[1].anim.toFixed(2)
@@ -235,7 +258,6 @@ var createScene = function () {
             checkboxGUI.forEach(child => {
                 if (child.isChecked) {
                     if (decorVectors[child.name].length > 0) {
-
                         decorVectors[child.name].forEach(v => {
                             v.meshVisualization.isVisible = true
                         })
@@ -397,24 +419,231 @@ var createScene = function () {
     });
 
 
+    UiPanelEditMap = new BABYLON.GUI.StackPanel();
+    UiPanelEditMap.width = "220px";
+    UiPanelEditMap.fontSize = "14px";
+    UiPanelEditMap.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    UiPanelEditMap.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    advancedTexture.addControl(UiPanelEditMap);
 
-    var paths = createPath(scene)
 
 
-    var track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
 
-    track.color = new BABYLON.Color3(1, 1, 1);
+    var imageStreetTurn = new BABYLON.GUI.Image("imageRightTurn", "../resources/image/right_turn.png");
+    imageStreetTurn.width = "120px";
+    imageStreetTurn.height = "120px";
+    imageStreetTurn.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+    imageStreetTurn.isVisible = false;
 
+    imageStreetTurn.isPointerBlocker = true;
+    UiPanelEditMap.addControl(imageStreetTurn);
+
+
+    var textStreetTurn = new BABYLON.GUI.TextBlock();
+    textStreetTurn.text = "Street turn"
+    textStreetTurn.fontSize = "25px"
+    textStreetTurn.height = "20px";
+    textStreetTurn.width = "120px";
+    textStreetTurn.color = "red";
+    textStreetTurn.isVisible = false;
+    UiPanelEditMap.addControl(textStreetTurn);
+
+    imageStreetTurn.onPointerDownObservable.add(() => {
+        suppressImage = false;
+        imageStreetPosed = false;
+        BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
+
+
+            mesh.forEach(m => {
+                m.position = new BABYLON.Vector3(0, 0, 0)
+                m.rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
+                m.scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
+                m.isPickable = true;
+                if (imageStreet != undefined) {
+                    imageStreet.forEach(s => {
+                        s.dispose()
+                    })
+                    imageStreet = undefined;
+                }
+
+                m.actionManager = new BABYLON.ActionManager(scene);
+                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
+
+                    if (imageStreetPosed === false) {
+                        imageStreetPosed = true;
+                        m.position.y = 0
+                        imageStreet = undefined;
+                    }
+                    if (suppressImage === true) {
+
+                        mesh.forEach(s => {
+                            s.dispose()
+                        })
+
+                    }
+
+                }));
+            })
+
+
+            imageStreet = mesh
+            mapEdit.push(imageStreet)
+
+
+        });
+    });
+
+
+    var imageStreetForward = new BABYLON.GUI.Image("imageStreetForward", "../resources/image/straight_forward.png");
+    imageStreetForward.width = "100px";
+    imageStreetForward.height = "100px";
+    imageStreetForward.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
+    imageStreetForward.isVisible = false;
+
+    imageStreetForward.isPointerBlocker = true;
+    UiPanelEditMap.addControl(imageStreetForward);
+
+    imageStreetForward.onPointerDownObservable.add(function () {
+        suppressImage = false;
+        imageStreetPosed = false;
+        BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
+            mesh.forEach(m => {
+
+                m.position = new BABYLON.Vector3(0, 0, 0)
+                m.rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
+                m.scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
+
+                m.position.y = 0
+                m.isPickable = true;
+                if (imageStreet != undefined) {
+                    imageStreet.forEach(s => {
+                        s.dispose()
+                    })
+                    imageStreet = undefined;
+                }
+
+                m.actionManager = new BABYLON.ActionManager(scene);
+                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
+                    mesh.forEach(s => {
+                        s.position.y = 0;
+                    })
+                    var actu = []
+                    var z = Math.trunc(mesh[0].position.z)
+                    var step = 10
+                    if (z > 0) {
+
+                        for (let i = z - 200; i < z + 200; i += 10) {
+                            let vec = new BABYLON.Vector3(mesh[0].position.x, mesh[0].position.y, i)
+                            paths.push(vec)
+                            actu.push(vec)
+                        }
+
+
+                    } else {
+
+                        for (let i = z + 200; i > z - 200; i -= 10) {
+                            let vec = new BABYLON.Vector3(mesh[0].position.x, mesh[0].position.y, i)
+                            paths.unshift(vec)
+                            actu.push(vec)
+                        }
+
+                    }
+                    console.log(paths)
+                    track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
+                    track.color = new BABYLON.Color3(1, 0, 0);
+                    if (imageStreetPosed === false) {
+                        imageStreetPosed = true;
+                        imageStreet = undefined;
+                    }
+
+                    if (suppressImage === true) {
+
+                        mesh.forEach(s => {
+                            s.dispose()
+                        })
+
+                    }
+
+                }));
+            })
+
+
+
+            imageStreet = mesh
+            mapEdit.push(imageStreet)
+
+
+
+        });
+    });
+
+
+
+    var textStreetForward = new BABYLON.GUI.TextBlock();
+    textStreetForward.text = "Street forward"
+    textStreetForward.fontSize = "25px"
+    textStreetForward.height = "20px";
+    textStreetForward.width = "170px";
+    textStreetForward.color = "red";
+    textStreetForward.isVisible = false;
+    UiPanelEditMap.addControl(textStreetForward);
+
+
+    var buttonEdit = GUI.createButton("Edit map", "10px", "100px", "100px", "white", "green")
+    UiPanelEditMap.addControl(buttonEdit)
+
+    var buttonQuitEdit = GUI.createButton("Quit edit map", "10px", "100px", "100px", "white", "orange")
+    buttonQuitEdit.isVisible = false;
+    UiPanelEditMap.addControl(buttonQuitEdit)
+
+
+    var buttonSuppress = GUI.createButton("Suppress street", "10px", "100px", "100px", "white", "red")
+    buttonSuppress.isVisible = false;
+    UiPanelEditMap.addControl(buttonSuppress)
+
+
+    buttonEdit.onPointerDownObservable.add(function () {
+        imageStreetTurn.isVisible = true
+        textStreetTurn.isVisible = true;
+        imageStreetForward.isVisible = true;
+        textStreetForward.isVisible = true;
+        buttonQuitEdit.isVisible = true;
+        buttonSuppress.isVisible = true;
+
+
+    });
+
+
+    buttonQuitEdit.onPointerDownObservable.add(function () {
+        imageStreetTurn.isVisible = false
+        imageStreetForward.isVisible = false
+        textStreetForward.isVisible = false;
+        textStreetTurn.isVisible = false;
+        buttonQuitEdit.isVisible = false;
+        buttonSuppress.isVisible = false;
+
+    })
+
+    buttonSuppress.onPointerDownObservable.add(function () {
+        suppressImage = true
+    });
+
+    var paths = []
+    //paths = createPath(scene)
 
 
     scene.registerAfterRender(function () {
 
-        if (entitiesCreated === true && selectedEntity === false) {
+        if (imageStreet != undefined && imageStreetPosed === false && mouseTarget != undefined) {
 
+            imageStreet[0].position = mouseTarget
+        }
+
+
+        if (entitiesCreated === true && selectedEntity === false) {
             for (let i = 0; i < entities.length; i++) {
 
                 // Update entities
-
                 entities[i].t.rotate()
                 entities[i].t.separate(entities)
                 entities[i].run(paths)
