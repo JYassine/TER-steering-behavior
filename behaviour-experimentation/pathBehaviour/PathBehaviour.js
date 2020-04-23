@@ -53,15 +53,23 @@ export default class PathBehaviour extends Behaviour {
                 
             }
 
+            
+
             var distance = BABYLON.Vector3.Distance(this.predictpos, normalPoint)
 
             if (distance < worldRecord) {
                 worldRecord = distance;
                 this.normal = normalPoint;
+                this.normal.y=0
                 
                 var dir = b.subtract(a)
+                
                 dir.normalize();
+                dir.x=-5
+
+
                 dir = dir.scale(10*(1-1/distance));
+                dir.y=0
                 this.targetP = this.normal.clone().add(dir)
                 
                 

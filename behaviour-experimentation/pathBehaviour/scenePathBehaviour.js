@@ -21,6 +21,7 @@ var targets = []
 var mouseTarget;
 var imageStreet
 var track;
+var uniqueId=0;
 var suppressImage = false;
 var imageStreetPosed = false;
 var mapEdit = []
@@ -37,103 +38,11 @@ var decorVectors = {
 }
 var checkboxGUI = []
 var paramsGUI = [
-    { name: "maxSpeed", anim: 15, weight: 15 },
+    { name: "maxSpeed", anim: 10, weight: 10 },
     { name: "maxForce", anim: 30, weight: 30 },
     { name: "mass", anim: 60, weight: 60 },
     { name: "desiredSeparation", anim: 50, weight: 50 }
 ]
-
-
-var createPath = (scene) => {
-
-    let mX = 600
-    let mZ = 900
-    var step = 100;
-    var paths = []
-    BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
-
-        mesh[0].position = new BABYLON.Vector3(-mZ + 100, 0, 0)
-        mesh[0].rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-
-    });
-
-    BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
-
-        mesh[0].position = new BABYLON.Vector3(-300, 0, 55)
-        mesh[0].rotate(BABYLON.Axis.Y, Math.PI, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-
-    });
-
-    BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
-
-        mesh[0].position = new BABYLON.Vector3(-230, 0, 550)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-
-    });
-
-    BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
-
-        mesh[0].position = new BABYLON.Vector3(300, 0, 605)
-        mesh[0].rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-
-    });
-
-    BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
-
-        mesh[0].position = new BABYLON.Vector3(825, 0, 570)
-        mesh[0].rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-
-    });
-
-    BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
-
-        mesh[0].position = new BABYLON.Vector3(880, 0, 30)
-        mesh[0].scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-
-
-    });
-
-
-
-
-    for (let i = -900; i <= -mX + mX / 2; i += step) {
-        paths.push(new BABYLON.Vector3(i, 0, 0))
-
-    }
-
-    for (let i = 0; i < mZ - 250; i += step) {
-        paths.push(new BABYLON.Vector3(-mX + mX / 2, 0, i))
-
-    }
-
-
-    for (let i = 800; i < mX; i += step) {
-        paths.push(new BABYLON.Vector3(mX, 0, i))
-    }
-
-    for (let i = mX; i < mZ; i += step) {
-        paths.push(new BABYLON.Vector3(i, 0, mX))
-    }
-
-    for (let i = mX; i >= -200; i -= step) {
-        paths.push(new BABYLON.Vector3(mZ, 0, i))
-    }
-
-
-
-    return paths
-
-}
 
 
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
@@ -143,7 +52,7 @@ var createScene = function () {
 
     var scene = new BABYLON.Scene(engine);
 
-    var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(-1500, 500, 40), scene);
+    var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(0, 3000, 60), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
 
     camera.attachControl(canvas, true);
@@ -204,8 +113,8 @@ var createScene = function () {
         entity.material = materialShip;
         entity.checkCollisions = true
         entity.position.y = 1
-        entity.position.z = -200
-        entity.position.x = -900
+        entity.position.z = 1500
+        entity.position.x = 0
 
         target = BABYLON.Mesh.CreateCylinder("target", 2, 0, 1, 6, 1, scene, false);
         target.scaling = new BABYLON.Vector3(7, 7, 7)
@@ -338,7 +247,7 @@ var createScene = function () {
         //HANDLE SELECTION AT CLICK
         entities.forEach(entity => {
             entity.mesh.actionManager = new BABYLON.ActionManager(scene);
-            entity.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, function (ev) {
+            entity.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnDoublePickTrigger, function (ev) {
 
                 if (UiPanelSelection !== undefined) {
                     UiPanelSelection.dispose();
@@ -453,11 +362,13 @@ var createScene = function () {
         imageStreetPosed = false;
         BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
 
-
+            mesh.name=uniqueId
             mesh.forEach(m => {
                 m.position = new BABYLON.Vector3(0, 0, 0)
                 m.rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
                 m.scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
+
+                m.position.y = 0
                 m.isPickable = true;
                 if (imageStreet != undefined) {
                     imageStreet.forEach(s => {
@@ -467,21 +378,65 @@ var createScene = function () {
                 }
 
                 m.actionManager = new BABYLON.ActionManager(scene);
-                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
+                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnDoublePickTrigger, function (ev) {
+
+                    var z = Math.trunc(mesh[0].position.z)
+                    var step = 10
+
+                    if (paths.length === 0) {
+
+                        for (let i = z + 300; i > z - 100; i -= step) {
+                            let vec = new BABYLON.Vector3(mesh[0].position.x + 100, 0, i)
+                            paths.push(vec)
+                        }
+
+                        var xPath = paths[paths.length - 1].x
+                        var zPath = paths[paths.length - 1].z
+                        for (let i = xPath; i > xPath - 400; i -= step) {
+                            let vec = new BABYLON.Vector3(i, 0, zPath)
+                            paths.push(vec)
+                        }
+                    } else {
+                        var z = paths[paths.length - 1].z
+                        var x = paths[paths.length - 1].x
+                        for (let i = z; i > z - 450; i -= step) {
+                            let vec = new BABYLON.Vector3(x, 0, i)
+                            paths.push(vec)
+                        }
+
+                        var xPath = paths[paths.length - 1].x
+                        var zPath = paths[paths.length - 1].z
+                        for (let i = xPath; i > xPath - 400; i -= step) {
+                            let vec = new BABYLON.Vector3(i, 0, zPath)
+                            paths.push(vec)
+                        }
+                    }
+
+
+                    track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
+                    track.color = new BABYLON.Color3(1, 0, 0);
 
                     if (imageStreetPosed === false) {
                         imageStreetPosed = true;
                         m.position.y = 0
                         imageStreet = undefined;
                     }
+
+
+                }));
+
+                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
+
                     if (suppressImage === true) {
-
-                        mesh.forEach(s => {
-                            s.dispose()
-                        })
-
+                        uniqueId-=1
+                        var id = parseInt(mesh.name)
+                        for(let i=0;i<mesh.length;i++){
+                            mesh[i].dispose()
+                        }
+                        paths.splice(id*40,(id*40)+40)
                     }
-
+                    
+                    
                 }));
             })
 
@@ -507,6 +462,8 @@ var createScene = function () {
         suppressImage = false;
         imageStreetPosed = false;
         BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
+            mesh.name=uniqueId;
+            uniqueId+=1;
             mesh.forEach(m => {
 
                 m.position = new BABYLON.Vector3(0, 0, 0)
@@ -523,32 +480,27 @@ var createScene = function () {
                 }
 
                 m.actionManager = new BABYLON.ActionManager(scene);
-                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
+                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnDoublePickTrigger, function (ev) {
                     mesh.forEach(s => {
                         s.position.y = 0;
                     })
-                    var actu = []
                     var z = Math.trunc(mesh[0].position.z)
                     var step = 10
-                    if (z > 0) {
 
-                        for (let i = z - 200; i < z + 200; i += 10) {
-                            let vec = new BABYLON.Vector3(mesh[0].position.x, mesh[0].position.y, i)
+                    if (paths.length === 0) {
+
+                        for (let i = z + 200; i > z - 200; i -= step) {
+                            let vec = new BABYLON.Vector3(mesh[0].position.x, 0, i)
                             paths.push(vec)
-                            actu.push(vec)
                         }
-
-
                     } else {
-
-                        for (let i = z + 200; i > z - 200; i -= 10) {
-                            let vec = new BABYLON.Vector3(mesh[0].position.x, mesh[0].position.y, i)
-                            paths.unshift(vec)
-                            actu.push(vec)
+                        var mPath = paths[paths.length - 1].z
+                        for (let i = mPath; i > mPath - 500; i -= step) {
+                            let vec = new BABYLON.Vector3(mesh[0].position.x, 0, i)
+                            paths.push(vec)
                         }
-
                     }
-                    console.log(paths)
+
                     track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
                     track.color = new BABYLON.Color3(1, 0, 0);
                     if (imageStreetPosed === false) {
@@ -556,14 +508,21 @@ var createScene = function () {
                         imageStreet = undefined;
                     }
 
+
+                }));
+
+                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
+
                     if (suppressImage === true) {
-
-                        mesh.forEach(s => {
-                            s.dispose()
-                        })
-
+                        uniqueId-=1
+                        var id = parseInt(mesh.name)
+                        for(let i=0;i<mesh.length;i++){
+                            mesh[i].dispose()
+                        }
+                        paths.splice(id*40,(id*40)+40)
                     }
-
+                    
+                    
                 }));
             })
 
@@ -631,19 +590,18 @@ var createScene = function () {
     var paths = []
     //paths = createPath(scene)
 
-
     scene.registerAfterRender(function () {
 
         if (imageStreet != undefined && imageStreetPosed === false && mouseTarget != undefined) {
-
             imageStreet[0].position = mouseTarget
         }
 
 
         if (entitiesCreated === true && selectedEntity === false) {
             for (let i = 0; i < entities.length; i++) {
-
                 // Update entities
+                
+                entities[i].t.position.y = 1
                 entities[i].t.rotate()
                 entities[i].t.separate(entities)
                 entities[i].run(paths)
