@@ -6,11 +6,9 @@ export default class AvoidanceBehavior extends Behaviour {
     constructor(mesh) {
         super(mesh)
         this.ahead = undefined;
-        this.ahead2 = undefined
         this.aheadMesh = undefined;
-        this.aheadMesh2 = undefined;
-        this.maxSeeAhead = 30
-        this.maxAvoidForce =2
+        this.maxSeeAhead = 7
+        this.maxAvoidForce =3
         this.avoidanceForce = new BABYLON.Vector3(0,0,0)
 
     }
@@ -18,18 +16,21 @@ export default class AvoidanceBehavior extends Behaviour {
 
     run(target, desired,listObstacles) {
         this.ahead = this.position.add(desired.clone().normalize().scale(this.maxSeeAhead))
-        this.ahead2 =  this.position.add(desired.clone().normalize().scale(this.maxSeeAhead*0.5))
         this.aheadMesh.position=this.ahead
-        this.aheadMesh2.position=this.ahead2
         var mostThreatening = this.findObstacle(listObstacles);
 
         if (mostThreatening !== undefined) {
-            this.avoidanceForce = this.ahead.subtract(mostThreatening.position).normalize().scale(this.maxAvoidForce)
-            this.avoidanceForce.y= 0
-            
-            this.applyForce(this.avoidanceForce);
-        } 
+            var multiplier = 1 + ( this.ahead.length() - mostThreatening.position.z) / this.ahead.length()
+            this.avoidanceForce.x = ( mostThreatening.getBoundingInfo().boundingSphere.radius - mostThreatening.position.x ) * multiplier
+            var brakingWeight = 2.0
+            this.avoidanceForce.z = ( mostThreatening.getBoundingInfo().boundingSphere.radius - mostThreatening.position.z ) * brakingWeight
+            this.applyForce(this.avoidanceForce)
+        }else{
 
+            
+            this.avoidanceForce=new BABYLON.Vector3.Zero()
+        }
+        
 
     }
 
@@ -41,8 +42,8 @@ export default class AvoidanceBehavior extends Behaviour {
 
         for (let i = 0; i < listObstacles.length; i++) {
             obstacle = listObstacles[i];
-            if (this.aheadMesh.intersectsMesh(obstacle, true) || this.aheadMesh2.intersectsMesh(obstacle, true) ) {
-                console.log("HI NIGGA")
+            if (this.aheadMesh.intersectsMesh(obstacle, true)) {
+                
                 collision = true
             }
 
@@ -51,7 +52,6 @@ export default class AvoidanceBehavior extends Behaviour {
             }
 
         }
-
         return mostThreatening;
     }
 

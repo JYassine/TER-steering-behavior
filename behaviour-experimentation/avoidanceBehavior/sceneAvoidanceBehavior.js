@@ -1,6 +1,6 @@
 import AvoidanceBehavior from "./AvoidanceBehavior.js";
 import SeekBehaviour from "../seekBehaviour/SeekBehaviour.js";
-import DecorVector from "../DecorVector.js";
+import DecorVector from "../GUI/DecorVector.js";
 
 var canvas = document.getElementById("renderCanvas");
 
@@ -99,11 +99,6 @@ var createScene = function () {
     vectorAhead.create(new BABYLON.Color3(1,0,0),true)
     avoidanceBehavior.aheadMesh = vectorAhead.meshVisualization
 
-    
-    var vectorAhead2 = new DecorVector(avoidanceBehavior.mesh.position,5,scene)
-    vectorAhead2.create(new BABYLON.Color3(0,1,0),true)
-    avoidanceBehavior.aheadMesh2 = vectorAhead.meshVisualization
-
     var seekBehaviour = new SeekBehaviour(entity)
     seekBehaviour.maxSpeed = 6
     seekBehaviour.maxForce = paramsGUI[1].anim.toFixed(2)
@@ -118,12 +113,12 @@ var createScene = function () {
             
             vectorAhead.update(seekBehaviour.desired.scale(avoidanceBehavior.maxSeeAhead))
             
-            vectorAhead2.update(seekBehaviour.desired.scale(avoidanceBehavior.maxSeeAhead))
             seekBehaviour.rotate()
             seekBehaviour.run(mouseTarget)
-            seekBehaviour.update()
+            
             avoidanceBehavior.run(mouseTarget,seekBehaviour.desired,listObstacles)
-            avoidanceBehavior.update()
+            seekBehaviour.applyForce(avoidanceBehavior.avoidanceForce)
+            seekBehaviour.update()
             /*console.log("AVOIDANCE :  : "+ avoidanceBehavior.aheadMesh.position)
             
             console.log("ENTITY :  : "+ entity.position)*/
