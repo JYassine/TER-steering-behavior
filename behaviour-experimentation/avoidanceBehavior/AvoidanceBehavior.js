@@ -8,29 +8,39 @@ export default class AvoidanceBehavior extends Behaviour {
         this.ahead = undefined;
         this.aheadMesh = undefined;
         this.maxSeeAhead = 7
-        this.maxAvoidForce =3
-        this.avoidanceForce = new BABYLON.Vector3(0,0,0)
+        this.maxAvoidForce = 3
+        this.avoidanceForce = new BABYLON.Vector3(0, 0, 0)
 
     }
 
 
-    run(target, desired,listObstacles) {
-        this.ahead = this.position.add(desired.clone().normalize().scale(this.maxSeeAhead))
-        this.aheadMesh.position=this.ahead
+    run(target, listObstacles) {
+
+        
+        this.ahead = target.subtract(new BABYLON.Vector3(this.position.x, this.position.y, this.position.z)).normalize().scale(this.maxSeeAhead);
+        this.aheadMesh.position = this.ahead
         var mostThreatening = this.findObstacle(listObstacles);
 
         if (mostThreatening !== undefined) {
-            var multiplier = 1 + ( this.ahead.length() - mostThreatening.position.z) / this.ahead.length()
-            this.avoidanceForce.x = ( mostThreatening.getBoundingInfo().boundingSphere.radius - mostThreatening.position.x ) * multiplier
+            var material = mostThreatening.material.clone()
+            material.diffuseColor = new BABYLON.Color3(0, 1, 0)
+            mostThreatening.material = material
+            var multiplier = 1 + (this.ahead.length() - mostThreatening.position.z) / this.ahead.length()
+            this.avoidanceForce.x = (mostThreatening.getBoundingInfo().boundingSphere.radius - mostThreatening.position.x) * multiplier
             var brakingWeight = 2.0
-            this.avoidanceForce.z = ( mostThreatening.getBoundingInfo().boundingSphere.radius - mostThreatening.position.z ) * brakingWeight
+            this.avoidanceForce.z = (mostThreatening.getBoundingInfo().boundingSphere.radius - mostThreatening.position.z) * brakingWeight
+       
             this.applyForce(this.avoidanceForce)
-        }else{
+        } else {
+            listObstacles.forEach(o => {
+                var material = o.material.clone()
+                material.diffuseColor = new BABYLON.Color3(1, 0, 0)
+                o.material = material
+            })
 
-            
-            this.avoidanceForce=new BABYLON.Vector3.Zero()
+            this.avoidanceForce = new BABYLON.Vector3.Zero()
         }
-        
+
 
     }
 
@@ -43,8 +53,9 @@ export default class AvoidanceBehavior extends Behaviour {
         for (let i = 0; i < listObstacles.length; i++) {
             obstacle = listObstacles[i];
             if (this.aheadMesh.intersectsMesh(obstacle, true)) {
-                
+
                 collision = true
+
             }
 
             if (collision && (mostThreatening === undefined || BABYLON.Vector3.Distance(this.position, obstacle.position) < BABYLON.Vector3.Distance(this.position, mostThreatening.position))) {
@@ -52,6 +63,7 @@ export default class AvoidanceBehavior extends Behaviour {
             }
 
         }
+
         return mostThreatening;
     }
 
