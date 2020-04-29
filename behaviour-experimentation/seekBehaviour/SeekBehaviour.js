@@ -32,7 +32,6 @@ export default class SeekBehaviour extends Behaviour {
         if (!(lengthSteer < this.maxForce)) {
             this.steer = scaledToMaxForce
         }
-
         super.applyForce(this.steer)
     }
 

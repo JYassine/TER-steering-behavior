@@ -11,11 +11,46 @@ export default class Behaviour {
         this.mass = 10
         this.name = "Heinsenberg"
         this.desiredSeparation=5
+        this.ahead = undefined;
+        this.ahead2 = undefined;
+        this.maxSeeAhead = 5
+        this.maxAvoidForce = 2.5
+        this.avoidanceForce = new BABYLON.Vector3(0, 0, 0)
 
     }
 
 
     run(target) {
+
+
+    }
+
+    avoid(listObstacles) {
+        
+        
+        var dynamic_length=0;
+        dynamic_length = this.maxSeeAhead + (this.velocity.length() / this.maxSpeed) * this.maxSeeAhead;
+        dynamic_length = parseInt(dynamic_length)
+        this.ahead = this.position.add((this.velocity.clone().normalize().scale(dynamic_length)));
+        this.ahead2 = this.position.add((this.velocity).clone().normalize()).scale(dynamic_length*0.5);
+        var mostThreatening = this.findObstacle(listObstacles);
+
+        if (mostThreatening !== undefined) {
+            
+            this.avoidanceForce  = this.ahead.subtract(mostThreatening.position).normalize().scale(this.maxAvoidForce*this.maxSpeed);
+            this.avoidanceForce.y=0;
+            
+            this.applyForce(this.avoidanceForce)
+       
+        } else {
+            listObstacles.forEach(o => {
+                var material = o.material.clone()
+                material.diffuseColor = new BABYLON.Color3(1, 0, 0)
+                o.material = material
+            })
+
+            this.avoidanceForce = new BABYLON.Vector3.Zero()
+        }
 
 
     }
@@ -65,6 +100,34 @@ export default class Behaviour {
             this.acceleration.addInPlace(force);
         }
     }
+
+    findObstacle(listObstacles) {
+
+        var mostThreatening = undefined
+        var obstacle = undefined
+        var collision = false;
+
+        for (let i = 0; i < listObstacles.length; i++) {
+            obstacle = listObstacles[i];
+            if (this.lineIntersectsCircle(this.ahead,this.ahead2,obstacle)) {
+                collision = true
+            }
+
+            if (collision && (mostThreatening === undefined || BABYLON.Vector3.Distance(this.position, obstacle.position) < BABYLON.Vector3.Distance(this.position, mostThreatening.position))) {
+                mostThreatening = obstacle;
+            }
+
+        }
+
+        return mostThreatening;
+    }
+
+    
+    lineIntersectsCircle(ahead, ahead2,obstacle) {
+        return BABYLON.Vector3.Distance(obstacle.position, this.position) <= obstacle.getBoundingInfo().boundingSphere.radius*10 ||BABYLON.Vector3.Distance(obstacle.position, ahead) <= obstacle.getBoundingInfo().boundingSphere.radius*10 || BABYLON.Vector3.Distance(obstacle.position, ahead2) <= obstacle.getBoundingInfo().boundingSphere.radius*10;
+    }
+
+
 
     rotate(){
         

@@ -15,9 +15,6 @@ var entities = []
 var UiPanelSelection;
 var advancedTexture;
 var nameEntities = []
-var entitiesAvoidance = []
-var vectorAheads=[]
-var ts = []
 var UiPanel;
 var targets = []
 var mouseTarget;
@@ -33,16 +30,13 @@ var decorVectors = {
 }
 var checkboxGUI = []
 var paramsGUI = [
-    { name: "maxSpeed", anim: 8, weight: 8 },
+    { name: "maxSpeed", anim: 15, weight: 15 },
     { name: "maxForce", anim: 30, weight: 30 },
     { name: "mass", anim: 60, weight: 60 },
-    { name: "desiredSeparation", anim: 300, weight: 300 }
+    { name: "desiredSeparation", anim: 300, weight: 300 },
+    {name: "maxSeeAhead", anim: 100, weight: 100}
 ]
-var paramsGUIAvoidance = [
-    {
-        name: "maxSeeAhead", anim: 7, weight: 7
-    }
-]
+
 
 var listObstacles = []
 
@@ -86,13 +80,7 @@ var createScene = function () {
 
 
     GUI.displayChangeParametersEntities("70px", paramsGUI, entities, UiPanel)
-    
-    GUI.displayChangeParametersEntities("70px", paramsGUIAvoidance, entitiesAvoidance, UiPanel)
-
-    
     GUI.displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors)
-    
-
     
 
 
@@ -115,14 +103,6 @@ var createScene = function () {
 
         /** Avoidance behavior */
 
-        var avoidanceBehavior = new AvoidanceBehavior(entity)
-        avoidanceBehavior.maxSpeed = paramsGUI[0].anim.toFixed(2)
-        avoidanceBehavior.maxForce = paramsGUI[1].anim.toFixed(2)
-        avoidanceBehavior.mass = paramsGUI[2].anim.toFixed(2)
-        avoidanceBehavior.desiredSeparation = paramsGUI[3].anim.toFixed(2)
-        avoidanceBehavior.maxSeeAhead = paramsGUIAvoidance[0].anim.toFixed(2)
-
-
 
         var seekBehaviour = new SeekBehaviour(entity)
         
@@ -130,6 +110,7 @@ var createScene = function () {
         seekBehaviour.maxForce = paramsGUI[1].anim.toFixed(2)
         seekBehaviour.mass = paramsGUI[2].anim.toFixed(2)
         seekBehaviour.desiredSeparation = paramsGUI[3].anim.toFixed(2)
+        seekBehaviour.maxSeeAhead= paramsGUI[4].anim.toFixed(2)
 
 
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
@@ -142,10 +123,6 @@ var createScene = function () {
         nameEntities.push(xChar);
 
         
-        var vectorAhead = new DecorVector(avoidanceBehavior.mesh.position,100,scene)
-        vectorAhead.create(new BABYLON.Color3(0,1,0),true)
-        avoidanceBehavior.aheadMesh = vectorAhead.meshVisualization
-        vectorAheads.push(vectorAhead)
 
         //Vector of seek behaviours
         var decorMaxSpeed = new DecorVector(seekBehaviour.mesh.position, 100, scene)
@@ -159,7 +136,6 @@ var createScene = function () {
         decorVectors["velocity"].push(decorVelocity)
 
         entities.push(seekBehaviour)
-        entitiesAvoidance.push(avoidanceBehavior)
 
         entitiesCreated = true
         buttonSelect.isEnabled = true;
@@ -328,7 +304,7 @@ var createScene = function () {
 
 
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 10; i++) {
 
         var mySphere = BABYLON.MeshBuilder.CreateSphere("mySphere", { diameter: 10, diameterX: 10 }, scene);
         mySphere.scaling = new BABYLON.Vector3(10, 10, 10)
@@ -348,18 +324,12 @@ var createScene = function () {
             for (let i = 0; i < entities.length; i++) {
                 mouseTarget.y = entities[i].mesh.position.y
 
-                
                 entities[i].separate(entities)
                 entities[i].rotate()
                 entities[i].run(mouseTarget)
-                entitiesAvoidance[i].run(mouseTarget, listObstacles)
-                entities[i].applyForce(entitiesAvoidance[i].avoidanceForce)
+                entities[i].avoid(listObstacles)
                 entities[i].update()
-
                 
-                vectorAheads[i].update(entitiesAvoidance[i].ahead)
-
-
                 
                 var directionRotation = (entities[i].velocity.clone()).normalize()
                 var dR = Math.atan2(directionRotation.z, -directionRotation.x)
