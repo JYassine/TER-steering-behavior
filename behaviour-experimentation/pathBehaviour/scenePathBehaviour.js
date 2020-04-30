@@ -3,6 +3,7 @@ import Behaviour from "../Behaviour.js";
 import GUI from "../GUI/GUI.js"
 import Utilities from "../Utilities.js"
 import DecorVector from "../GUI/DecorVector.js"
+import EditMap from "./EditMap.js"
 var canvas = document.getElementById("renderCanvas");
 
 var engine = null;
@@ -15,6 +16,7 @@ var UiPanelSelection;
 var advancedTexture;
 var nameEntities = []
 var ts = []
+var editMap;
 var UiPanel;
 var UiPanelEditMap;
 var targets = []
@@ -61,7 +63,7 @@ var createScene = function () {
 
     var gridMaterial = new BABYLON.GridMaterial("grid", scene);
     ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 3000, height: 3000 }, scene);
-    gridMaterial.gridRatio = 4
+    gridMaterial.gridRatio = 10
 
 
     var materialShip = new BABYLON.StandardMaterial("shiptx1", scene);
@@ -337,215 +339,25 @@ var createScene = function () {
 
 
 
+    //imageStreetTurn.isPointerBlocker = true;
 
-    var imageStreetTurn = new BABYLON.GUI.Image("imageRightTurn", "../resources/image/right_turn.png");
-    imageStreetTurn.width = "120px";
-    imageStreetTurn.height = "120px";
-    imageStreetTurn.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
-    imageStreetTurn.isVisible = false;
+    
+    var buttonStreetBackWard = GUI.createButton("Street Turn", "10px", "100px", "100px", "white", "black")
+    buttonStreetBackWard.isVisible=false;
+    UiPanelEditMap.addControl(buttonStreetBackWard)
 
-    imageStreetTurn.isPointerBlocker = true;
-    UiPanelEditMap.addControl(imageStreetTurn);
+    var buttonStreetForward= GUI.createButton("Street Forward", "10px", "100px", "100px", "white", "black")
+    buttonStreetForward.isVisible=false;
+    UiPanelEditMap.addControl(buttonStreetForward)
 
+    var buttonStreetLeft= GUI.createButton("Street Left", "10px", "100px", "100px", "white", "black")
+    buttonStreetLeft.isVisible=false;
+    UiPanelEditMap.addControl(buttonStreetLeft)
 
-    var textStreetTurn = new BABYLON.GUI.TextBlock();
-    textStreetTurn.text = "Street turn"
-    textStreetTurn.fontSize = "25px"
-    textStreetTurn.height = "20px";
-    textStreetTurn.width = "120px";
-    textStreetTurn.color = "red";
-    textStreetTurn.isVisible = false;
-    UiPanelEditMap.addControl(textStreetTurn);
+    var buttonStreetRight= GUI.createButton("Street Right", "10px", "100px", "100px", "white", "black")
+    buttonStreetRight.isVisible=false;
+    UiPanelEditMap.addControl(buttonStreetRight)
 
-    imageStreetTurn.onPointerDownObservable.add(() => {
-        suppressImage = false;
-        imageStreetPosed = false;
-        BABYLON.SceneLoader.ImportMesh("", "../resources/", "RightTurn.glb", scene, function (mesh) {
-
-            mesh.name=uniqueId
-            mesh.forEach(m => {
-                m.position = new BABYLON.Vector3(0, 0, 0)
-                m.rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
-                m.scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-                m.position.y = 0
-                m.isPickable = true;
-                if (imageStreet != undefined) {
-                    imageStreet.forEach(s => {
-                        s.dispose()
-                    })
-                    imageStreet = undefined;
-                }
-
-                m.actionManager = new BABYLON.ActionManager(scene);
-                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnDoublePickTrigger, function (ev) {
-
-                    var z = Math.trunc(mesh[0].position.z)
-                    var step = 10
-
-                    if (paths.length === 0) {
-
-                        for (let i = z + 300; i > z - 100; i -= step) {
-                            let vec = new BABYLON.Vector3(mesh[0].position.x + 100, 0, i)
-                            paths.push(vec)
-                        }
-
-                        var xPath = paths[paths.length - 1].x
-                        var zPath = paths[paths.length - 1].z
-                        for (let i = xPath; i > xPath - 400; i -= step) {
-                            let vec = new BABYLON.Vector3(i, 0, zPath)
-                            paths.push(vec)
-                        }
-                    } else {
-                        var z = paths[paths.length - 1].z
-                        var x = paths[paths.length - 1].x
-                        for (let i = z; i > z - 450; i -= step) {
-                            let vec = new BABYLON.Vector3(x, 0, i)
-                            paths.push(vec)
-                        }
-
-                        var xPath = paths[paths.length - 1].x
-                        var zPath = paths[paths.length - 1].z
-                        for (let i = xPath; i > xPath - 400; i -= step) {
-                            let vec = new BABYLON.Vector3(i, 0, zPath)
-                            paths.push(vec)
-                        }
-                    }
-
-
-                    track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
-                    track.color = new BABYLON.Color3(1, 0, 0);
-
-                    if (imageStreetPosed === false) {
-                        imageStreetPosed = true;
-                        m.position.y = 0
-                        imageStreet = undefined;
-                    }
-
-
-                }));
-
-                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
-
-                    if (suppressImage === true) {
-                        uniqueId-=1
-                        var id = parseInt(mesh.name)
-                        for(let i=0;i<mesh.length;i++){
-                            mesh[i].dispose()
-                        }
-                        paths.splice(id*40,(id*40)+40)
-                    }
-                    
-                    
-                }));
-            })
-
-
-            imageStreet = mesh
-            mapEdit.push(imageStreet)
-
-
-        });
-    });
-
-
-    var imageStreetForward = new BABYLON.GUI.Image("imageStreetForward", "../resources/image/straight_forward.png");
-    imageStreetForward.width = "100px";
-    imageStreetForward.height = "100px";
-    imageStreetForward.stretch = BABYLON.GUI.Image.STRETCH_UNIFORM;
-    imageStreetForward.isVisible = false;
-
-    imageStreetForward.isPointerBlocker = true;
-    UiPanelEditMap.addControl(imageStreetForward);
-
-    imageStreetForward.onPointerDownObservable.add(function () {
-        suppressImage = false;
-        imageStreetPosed = false;
-        BABYLON.SceneLoader.ImportMesh("", "../resources/", "StraightRoad.glb", scene, function (mesh) {
-            mesh.name=uniqueId;
-            uniqueId+=1;
-            mesh.forEach(m => {
-
-                m.position = new BABYLON.Vector3(0, 0, 0)
-                m.rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL)
-                m.scaling = new BABYLON.Vector3(radiusPath, radiusPath, radiusPath)
-
-                m.position.y = 0
-                m.isPickable = true;
-                if (imageStreet != undefined) {
-                    imageStreet.forEach(s => {
-                        s.dispose()
-                    })
-                    imageStreet = undefined;
-                }
-
-                m.actionManager = new BABYLON.ActionManager(scene);
-                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnDoublePickTrigger, function (ev) {
-                    mesh.forEach(s => {
-                        s.position.y = 0;
-                    })
-                    var z = Math.trunc(mesh[0].position.z)
-                    var step = 10
-
-                    if (paths.length === 0) {
-
-                        for (let i = z + 200; i > z - 200; i -= step) {
-                            let vec = new BABYLON.Vector3(mesh[0].position.x, 0, i)
-                            paths.push(vec)
-                        }
-                    } else {
-                        var mPath = paths[paths.length - 1].z
-                        for (let i = mPath; i > mPath - 500; i -= step) {
-                            let vec = new BABYLON.Vector3(mesh[0].position.x, 0, i)
-                            paths.push(vec)
-                        }
-                    }
-
-                    track = BABYLON.MeshBuilder.CreateLines('track', { points: paths }, scene);
-                    track.color = new BABYLON.Color3(1, 0, 0);
-                    if (imageStreetPosed === false) {
-                        imageStreetPosed = true;
-                        imageStreet = undefined;
-                    }
-
-
-                }));
-
-                m.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
-
-                    if (suppressImage === true) {
-                        uniqueId-=1
-                        var id = parseInt(mesh.name)
-                        for(let i=0;i<mesh.length;i++){
-                            mesh[i].dispose()
-                        }
-                        paths.splice(id*40,(id*40)+40)
-                    }
-                    
-                    
-                }));
-            })
-
-
-
-            imageStreet = mesh
-            mapEdit.push(imageStreet)
-
-
-
-        });
-    });
-
-
-
-    var textStreetForward = new BABYLON.GUI.TextBlock();
-    textStreetForward.text = "Street forward"
-    textStreetForward.fontSize = "25px"
-    textStreetForward.height = "20px";
-    textStreetForward.width = "170px";
-    textStreetForward.color = "red";
-    textStreetForward.isVisible = false;
-    UiPanelEditMap.addControl(textStreetForward);
 
 
     var buttonEdit = GUI.createButton("Edit map", "10px", "100px", "100px", "white", "green")
@@ -562,24 +374,27 @@ var createScene = function () {
 
 
     buttonEdit.onPointerDownObservable.add(function () {
-        imageStreetTurn.isVisible = true
-        textStreetTurn.isVisible = true;
-        imageStreetForward.isVisible = true;
-        textStreetForward.isVisible = true;
         buttonQuitEdit.isVisible = true;
         buttonSuppress.isVisible = true;
+        buttonStreetBackWard.isVisible=true;
+        buttonStreetForward.isVisible=true;
+        buttonStreetLeft.isVisible=true;
+        buttonStreetRight.isVisible=true;
+
+        
+        editMap = new EditMap(3000,3000,200,scene)
+        editMap.createEditMap(gridMaterial)
+        editMap.handlePointerHover();
+        editMap.handlePointerClick(editMap.map);
 
 
     });
 
 
     buttonQuitEdit.onPointerDownObservable.add(function () {
-        imageStreetTurn.isVisible = false
-        imageStreetForward.isVisible = false
-        textStreetForward.isVisible = false;
-        textStreetTurn.isVisible = false;
         buttonQuitEdit.isVisible = false;
         buttonSuppress.isVisible = false;
+        editMap.delete()
 
     })
 

@@ -67,7 +67,6 @@ var createScene = function () {
 
     window.addEventListener("mousemove", function () {
         var pickResult = scene.pick(scene.pointerX, scene.pointerY);
-
         mouseTarget = pickResult.pickedPoint
 
     });
