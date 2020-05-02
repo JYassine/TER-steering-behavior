@@ -4,6 +4,7 @@ import GUI from "../GUI/GUI.js"
 import Utilities from "../Utilities.js"
 import DecorVector from "../GUI/DecorVector.js"
 import EditMap from "./EditMap.js"
+import Direction from "./Direction.js";
 var canvas = document.getElementById("renderCanvas");
 
 var engine = null;
@@ -16,6 +17,7 @@ var UiPanelSelection;
 var advancedTexture;
 var nameEntities = []
 var ts = []
+var direction;
 var editMap;
 var UiPanel;
 var UiPanelEditMap;
@@ -23,7 +25,7 @@ var targets = []
 var mouseTarget;
 var imageStreet
 var track;
-var uniqueId=0;
+var uniqueId = 0;
 var suppressImage = false;
 var imageStreetPosed = false;
 var mapEdit = []
@@ -339,24 +341,53 @@ var createScene = function () {
 
 
 
-    //imageStreetTurn.isPointerBlocker = true;
-
-    
-    var buttonStreetBackWard = GUI.createButton("Street Turn", "10px", "100px", "100px", "white", "black")
-    buttonStreetBackWard.isVisible=false;
+    var buttonStreetBackWard = GUI.createButton("Street back", "10px", "100px", "100px", "white", "black")
+    buttonStreetBackWard.isVisible = false;
+    buttonStreetBackWard.isPointerBlocker = true;
     UiPanelEditMap.addControl(buttonStreetBackWard)
 
-    var buttonStreetForward= GUI.createButton("Street Forward", "10px", "100px", "100px", "white", "black")
-    buttonStreetForward.isVisible=false;
+    buttonStreetBackWard.onPointerDownObservable.add(function () {
+        direction = Direction.BACK;
+        editMap.handlePointerClick(editMap.map,direction)
+
+    });
+
+
+
+    var buttonStreetForward = GUI.createButton("Street Forward", "10px", "100px", "100px", "white", "black")
+    buttonStreetForward.isVisible = false;
+    buttonStreetForward.isPointerBlocker = true;
     UiPanelEditMap.addControl(buttonStreetForward)
 
-    var buttonStreetLeft= GUI.createButton("Street Left", "10px", "100px", "100px", "white", "black")
-    buttonStreetLeft.isVisible=false;
+    buttonStreetForward.onPointerDownObservable.add(function () {
+        direction = Direction.FORWARD
+        editMap.handlePointerClick(editMap.map,direction)
+
+    });
+
+    var buttonStreetLeft = GUI.createButton("Street Left", "10px", "100px", "100px", "white", "black")
+
+    buttonStreetLeft.isPointerBlocker = true;
+    buttonStreetLeft.isVisible = false;
     UiPanelEditMap.addControl(buttonStreetLeft)
 
-    var buttonStreetRight= GUI.createButton("Street Right", "10px", "100px", "100px", "white", "black")
-    buttonStreetRight.isVisible=false;
+    buttonStreetLeft.onPointerDownObservable.add(function () {
+        direction = Direction.LEFT;
+        editMap.handlePointerClick(editMap.map,direction)
+
+    });
+
+    var buttonStreetRight = GUI.createButton("Street Right", "10px", "100px", "100px", "white", "black")
+    buttonStreetRight.isVisible = false;
+
+    buttonStreetRight.isPointerBlocker = true;
     UiPanelEditMap.addControl(buttonStreetRight)
+
+    buttonStreetRight.onPointerDownObservable.add(function () {
+        direction = Direction.RIGHT;
+        editMap.handlePointerClick(editMap.map,direction)
+
+    });
 
 
 
@@ -376,16 +407,15 @@ var createScene = function () {
     buttonEdit.onPointerDownObservable.add(function () {
         buttonQuitEdit.isVisible = true;
         buttonSuppress.isVisible = true;
-        buttonStreetBackWard.isVisible=true;
-        buttonStreetForward.isVisible=true;
-        buttonStreetLeft.isVisible=true;
-        buttonStreetRight.isVisible=true;
+        buttonStreetBackWard.isVisible = true;
+        buttonStreetForward.isVisible = true;
+        buttonStreetLeft.isVisible = true;
+        buttonStreetRight.isVisible = true;
 
-        
-        editMap = new EditMap(3000,3000,200,scene)
+
+        editMap = new EditMap(3000, 3000, 200, scene)
         editMap.createEditMap(gridMaterial)
         editMap.handlePointerHover();
-        editMap.handlePointerClick(editMap.map);
 
 
     });
@@ -400,6 +430,8 @@ var createScene = function () {
 
     buttonSuppress.onPointerDownObservable.add(function () {
         suppressImage = true
+        editMap.handleSuppressClick(editMap,editMap.edit, editMap.map, editMap.scene)
+        
     });
 
     var paths = []
@@ -415,7 +447,7 @@ var createScene = function () {
         if (entitiesCreated === true && selectedEntity === false) {
             for (let i = 0; i < entities.length; i++) {
                 // Update entities
-                
+
                 entities[i].t.position.y = 1
                 entities[i].t.rotate()
                 entities[i].t.separate(entities)
