@@ -10,6 +10,7 @@ export default class EditMap {
         this.edit = []
         this.map = []
         this.direction = Direction.FORWARD;
+        this.concMap=[]
     }
 
 
@@ -53,7 +54,7 @@ export default class EditMap {
     }
 
 
-    handlePointerClick( map, direction) {
+    handlePointerClick( map, direction,concMap) {
 
         var materialHover = new BABYLON.StandardMaterial("shiptx1", this.scene);
         materialHover.diffuseColor = new BABYLON.Color3(0, 0, 1); //Red
@@ -79,8 +80,18 @@ export default class EditMap {
                 var positionTile = tileMap.position.clone()
                 tileMap.dispose()
                 var road1 = new Road(200, positionTile, direction)
-                road1.createRoad(this.scene)
+                if(concMap.length===0){
+                    
+                    road1.createRoad(this.scene)
+
+                }else{
+                    road1.createRoad(this.scene,concMap[concMap.length-1])
+                }
                 map.push(road1)
+                road1.pathPoint.forEach(path=>{
+                    concMap.push({direction,path})
+                })
+                console.log(concMap)
 
             }));
         });
@@ -122,9 +133,15 @@ export default class EditMap {
                 for (let i = 0; i < map.length; i++) {
                     if (posTile.x === map[i].road.position.x && posTile.z === map[i].road.position.z) {
                         map.splice(i, 1)
+                        var startP = i*(20);
+                        editMap.concMap.splice(startP,21)
+                        
                         break;
                     }
                 }
+
+                console.log(editMap.concMap)
+
 
                 var myBox = BABYLON.MeshBuilder.CreateBox("myBox", { height: 200, width: 200, depth: 10 }, scene);
                 myBox.rotate(BABYLON.Axis.X, Math.PI / 2, BABYLON.Space.WORLD);

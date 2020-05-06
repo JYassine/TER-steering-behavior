@@ -1,5 +1,6 @@
 import Behaviour from "../Behaviour.js";
 import SeekBehaviour from "../seekBehaviour/SeekBehaviour.js";
+import Direction from "./Direction.js";
 
 export default class PathBehaviour extends Behaviour {
 
@@ -30,12 +31,14 @@ export default class PathBehaviour extends Behaviour {
 
         var predict = this.velocity.clone().normalize().scale(20)
         this.predictpos = predict.add(this.position)
+        var dirB;
 
         let worldRecord = 1000000;
 
         for (let i = 0; i < paths.length-1; i++) {
-            var a = paths[i]
-            var b = paths[i+1]
+            var a = paths[i].path
+            var b = paths[i+1].path
+            dirB = paths[i+1].direction
             var normalPoint = this.normalPoint(this.predictpos, a, b);
 
             var distance=null;
@@ -65,7 +68,15 @@ export default class PathBehaviour extends Behaviour {
                 var dir = b.subtract(a)
                 
                 dir.normalize();
-                dir.x=-5
+                if(dirB === Direction.RIGHT){
+                    dir.x=-5;
+                }else if(dirB===Direction.BACK){
+                    dir.z+=5;
+                }else if(dirB===Direction.LEFT){
+                    dir.x+=5;
+                }else{
+                    dir.z-=5;
+                }
 
 
                 dir = dir.scale(10*(1-1/distance));

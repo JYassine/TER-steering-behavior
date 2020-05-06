@@ -24,17 +24,13 @@ var UiPanelEditMap;
 var targets = []
 var mouseTarget;
 var imageStreet
-var track;
-var uniqueId = 0;
 var suppressImage = false;
 var imageStreetPosed = false;
-var mapEdit = []
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "yellow": new BABYLON.Color3(1, 1, 0),
     "blue": new BABYLON.Color3(0, 0, 1)
 }
-var radiusPath = 3
 var decorVectors = {
     "maxSpeed": [],
     "maxForce": [],
@@ -348,7 +344,7 @@ var createScene = function () {
 
     buttonStreetBackWard.onPointerDownObservable.add(function () {
         direction = Direction.BACK;
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map,direction,editMap.concMap)
 
     });
 
@@ -361,7 +357,7 @@ var createScene = function () {
 
     buttonStreetForward.onPointerDownObservable.add(function () {
         direction = Direction.FORWARD
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map,direction,editMap.concMap)
 
     });
 
@@ -373,7 +369,7 @@ var createScene = function () {
 
     buttonStreetLeft.onPointerDownObservable.add(function () {
         direction = Direction.LEFT;
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map,direction,editMap.concMap)
 
     });
 
@@ -385,7 +381,7 @@ var createScene = function () {
 
     buttonStreetRight.onPointerDownObservable.add(function () {
         direction = Direction.RIGHT;
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map,direction,editMap.concMap)
 
     });
 
@@ -443,7 +439,7 @@ var createScene = function () {
             imageStreet[0].position = mouseTarget
         }
 
-
+        
         if (entitiesCreated === true && selectedEntity === false) {
             for (let i = 0; i < entities.length; i++) {
                 // Update entities
@@ -451,7 +447,7 @@ var createScene = function () {
                 entities[i].t.position.y = 1
                 entities[i].t.rotate()
                 entities[i].t.separate(entities)
-                entities[i].run(paths)
+                entities[i].run(editMap.concMap)
                 entities[i].t.update()
 
                 // Update targets
