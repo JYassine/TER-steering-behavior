@@ -17,13 +17,14 @@ export default class EditMap {
     createEditMap(gridMaterial) {
         for (let i = this.height / 2; i > (-this.height / 2) - this.widthTile; i -= this.widthTile) {
             for (let j = -(this.height / 2); j < (this.height / 2) + this.widthTile; j += this.widthTile) {
-                var myBox = BABYLON.MeshBuilder.CreateBox("myBox", { height: this.widthTile, width: this.widthTile, depth: 10 }, this.scene);
-                myBox.rotate(BABYLON.Axis.X, Math.PI / 2, BABYLON.Space.WORLD);
-                myBox.material = gridMaterial
-                myBox.position.x = i
-                myBox.position.z = j
-                myBox.position.y = 0
-                this.edit.push(myBox)
+                var box = BABYLON.MeshBuilder.CreateBox("box", { height: this.widthTile, width: this.widthTile, depth: 10 }, this.scene);
+                box.rotate(BABYLON.Axis.X, Math.PI / 2, BABYLON.Space.WORLD);
+                box.material = gridMaterial
+                box.position.x = i
+                box.position.z = j
+                box.position.y = 0
+                var editable = true;
+                this.edit.push({editable,box})
             }
         }
     }
@@ -39,22 +40,22 @@ export default class EditMap {
 
 
         this.edit.forEach(tileMap => {
-            tileMap.actionManager = new BABYLON.ActionManager(this.scene);
-            tileMap.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, function (ev) {
-                tileMap.material = materialHover
+            tileMap.box.actionManager = new BABYLON.ActionManager(this.scene);
+            tileMap.box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, function (ev) {
+                tileMap.box.material = materialHover
 
             }));
 
-            tileMap.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, function (ev) {
+            tileMap.box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, function (ev) {
 
-                tileMap.material = materialOutHover
+                tileMap.box.material = materialOutHover
 
             }));
         });
     }
 
 
-    handlePointerClick( map, direction,concMap) {
+    handlePointerClick( map, direction) {
 
         var materialHover = new BABYLON.StandardMaterial("shiptx1", this.scene);
         materialHover.diffuseColor = new BABYLON.Color3(0, 0, 1); //Red
@@ -65,33 +66,24 @@ export default class EditMap {
 
         this.edit.forEach(tileMap => {
 
-            tileMap.actionManager = new BABYLON.ActionManager(this.scene);
-            tileMap.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, function (ev) {
-                tileMap.material = materialHover
+            tileMap.box.actionManager = new BABYLON.ActionManager(this.scene);
+            tileMap.box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, function (ev) {
+                tileMap.box.material = materialHover
 
             }));
 
-            tileMap.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, function (ev) {
+            tileMap.box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, function (ev) {
 
-                tileMap.material = materialOutHover
+                tileMap.box.material = materialOutHover
 
             }));
-            tileMap.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
-                var positionTile = tileMap.position.clone()
-                tileMap.dispose()
+            tileMap.box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
+                var positionTile = tileMap.box.position.clone()
+                tileMap.box.dispose()
+                tileMap.editable=false;
                 var road1 = new Road(200, positionTile, direction)
-                if(concMap.length===0){
-                    
-                    road1.createRoad(this.scene)
-
-                }else{
-                    road1.createRoad(this.scene,concMap[concMap.length-1])
-                }
+                road1.createRoad(this.scene)
                 map.push(road1)
-                road1.pathPoint.forEach(path=>{
-                    concMap.push({direction,path})
-                })
-                console.log(concMap)
 
             }));
         });
@@ -140,17 +132,16 @@ export default class EditMap {
                     }
                 }
 
-                console.log(editMap.concMap)
 
 
-                var myBox = BABYLON.MeshBuilder.CreateBox("myBox", { height: 200, width: 200, depth: 10 }, scene);
-                myBox.rotate(BABYLON.Axis.X, Math.PI / 2, BABYLON.Space.WORLD);
-                myBox.material = gridMaterial
-                myBox.position = posTile
+                var box = BABYLON.MeshBuilder.CreateBox("myBox", { height: 200, width: 200, depth: 10 }, scene);
+                box.rotate(BABYLON.Axis.X, Math.PI / 2, BABYLON.Space.WORLD);
+                box.material = gridMaterial
+                box.position = posTile
 
                 for (let i = 0; i < edit.length; i++) {
-                    if (posTile.x === edit[i].position.x && posTile.z === edit[i].position.z) {
-                        edit[i] = myBox
+                    if (posTile.x === edit[i].box.position.x && posTile.z === edit[i].box.position.z) {
+                        edit[i].box = box
                         editMap.handlePointerHover()
                         
                     }
@@ -166,9 +157,8 @@ export default class EditMap {
 
     delete() {
         this.edit.forEach(tileMap => {
-            tileMap.dispose()
+            tileMap.box.isVisible=false;
 
         })
-        this.edit = []
     }
 }
