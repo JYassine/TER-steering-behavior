@@ -21,12 +21,14 @@ var mouseTarget;
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "yellow": new BABYLON.Color3(1, 1, 0),
-    "blue": new BABYLON.Color3(0, 0, 1)
+    "blue": new BABYLON.Color3(0, 0, 1),
+    "purple": new BABYLON.Color3(1, 0, 1)
 }
 var decorVectors = {
     "maxSpeed": [],
     "maxForce": [],
-    "velocity": []
+    "velocity": [],
+    "avoidanceForce":[]
 }
 var checkboxGUI = []
 var paramsGUI = [
@@ -34,7 +36,7 @@ var paramsGUI = [
     { name: "maxForce", anim: 30, weight: 30 },
     { name: "mass", anim: 60, weight: 60 },
     { name: "desiredSeparation", anim: 300, weight: 300 },
-    {name: "maxSeeAhead", anim: 100, weight: 100}
+    {name: "maxSeeAhead", anim: 50, weight: 50}
 ]
 
 
@@ -127,12 +129,17 @@ var createScene = function () {
         var decorMaxSpeed = new DecorVector(seekBehaviour.mesh.position, 100, scene)
         var decorMaxForce = new DecorVector(seekBehaviour.mesh.position, 100, scene)
         var decorVelocity = new DecorVector(seekBehaviour.mesh.position, 100, scene)
+        
+        var decorAvoidance = new DecorVector(seekBehaviour.mesh.position, 100, scene)
         decorMaxSpeed.create(colorVectors[Object.keys(colorVectors)[0]], false)
         decorMaxForce.create(colorVectors[Object.keys(colorVectors)[1]], false)
         decorVelocity.create(colorVectors[Object.keys(colorVectors)[2]], false)
+        
+        decorAvoidance.create(colorVectors[Object.keys(colorVectors)[3]], false)
         decorVectors["maxSpeed"].push(decorMaxSpeed)
         decorVectors["maxForce"].push(decorMaxForce)
         decorVectors["velocity"].push(decorVelocity)
+        decorVectors["avoidanceForce"].push(decorAvoidance)
 
         entities.push(seekBehaviour)
 
@@ -258,7 +265,8 @@ var createScene = function () {
         decorVectors = {
             "maxSpeed": [],
             "maxForce": [],
-            "velocity": []
+            "velocity": [],
+            "avoidanceForce" : []
         }
         entitiesCreated = false
         selectedEntity = false;
@@ -341,6 +349,7 @@ var createScene = function () {
                 decorVectors["maxSpeed"][i].update(entities[i].desired)
                 decorVectors["maxForce"][i].update(entities[i].steer)
                 decorVectors["velocity"][i].update(entities[i].velocity)
+                decorVectors["avoidanceForce"][i].update(entities[i].avoidanceForce)
 
             }
 

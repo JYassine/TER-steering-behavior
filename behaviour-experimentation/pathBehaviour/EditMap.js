@@ -10,7 +10,7 @@ export default class EditMap {
         this.edit = []
         this.map = []
         this.direction = Direction.FORWARD;
-        this.concMap=[]
+        this.concMap = []
     }
 
 
@@ -24,7 +24,7 @@ export default class EditMap {
                 box.position.z = j
                 box.position.y = 0
                 var editable = true;
-                this.edit.push({editable,box})
+                this.edit.push({ editable, box })
             }
         }
     }
@@ -55,7 +55,7 @@ export default class EditMap {
     }
 
 
-    handlePointerClick( map, direction) {
+    handlePointerClick(map, direction) {
 
         var materialHover = new BABYLON.StandardMaterial("shiptx1", this.scene);
         materialHover.diffuseColor = new BABYLON.Color3(0, 0, 1); //Red
@@ -80,7 +80,7 @@ export default class EditMap {
             tileMap.box.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnLeftPickTrigger, function (ev) {
                 var positionTile = tileMap.box.position.clone()
                 tileMap.box.dispose()
-                tileMap.editable=false;
+                tileMap.editable = false;
                 var road1 = new Road(200, positionTile, direction)
                 road1.createRoad(this.scene)
                 map.push(road1)
@@ -92,7 +92,7 @@ export default class EditMap {
 
     }
 
-    handleSuppressClick(editMap,edit, map, scene) {
+    handleSuppressClick(editMap, edit, map, scene,concMap) {
 
         var materialHover = new BABYLON.StandardMaterial("shiptx1", this.scene);
         materialHover.diffuseColor = new BABYLON.Color3(1, 0, 0); //Red
@@ -125,9 +125,12 @@ export default class EditMap {
                 for (let i = 0; i < map.length; i++) {
                     if (posTile.x === map[i].road.position.x && posTile.z === map[i].road.position.z) {
                         map.splice(i, 1)
-                        var startP = i*(20);
-                        editMap.concMap.splice(startP,21)
-                        
+                        if (concMap.length > 0) {
+                            var startP = i * (20);
+                            concMap.splice(startP+1,21)
+
+                        }
+
                         break;
                     }
                 }
@@ -143,7 +146,7 @@ export default class EditMap {
                     if (posTile.x === edit[i].box.position.x && posTile.z === edit[i].box.position.z) {
                         edit[i].box = box
                         editMap.handlePointerHover()
-                        
+
                     }
                 }
             }));
@@ -157,8 +160,16 @@ export default class EditMap {
 
     delete() {
         this.edit.forEach(tileMap => {
-            tileMap.box.isVisible=false;
+            tileMap.box.isVisible = false;
+            tileMap.box.actionManager = undefined;
+        })
+        this.map.forEach(m=>{
+            
+            var materialOutHover = new BABYLON.StandardMaterial("myMaterial", this.scene);
 
+            materialOutHover.diffuseTexture = new BABYLON.Texture("../resources/droite.jpg", this.scene);
+            m.road.actionManager = undefined;
+            m.road.material=materialOutHover
         })
     }
 }

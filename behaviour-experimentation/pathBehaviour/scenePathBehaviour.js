@@ -38,7 +38,7 @@ var decorVectors = {
 }
 var checkboxGUI = []
 var paramsGUI = [
-    { name: "maxSpeed", anim: 10, weight: 10 },
+    { name: "maxSpeed", anim: 15, weight: 15 },
     { name: "maxForce", anim: 30, weight: 30 },
     { name: "mass", anim: 60, weight: 60 },
     { name: "desiredSeparation", anim: 50, weight: 50 }
@@ -112,9 +112,9 @@ var createScene = function () {
         entity.scaling = new BABYLON.Vector3(20, 20, 20)
         entity.material = materialShip;
         entity.checkCollisions = true
-        entity.position.y = 1
-        entity.position.z = 1500
-        entity.position.x = 0
+        entity.position.y = editMap.map[0].road.position.y
+        entity.position.z = editMap.map[0].road.position.z+300
+        entity.position.x = editMap.map[0].road.position.x
 
         target = BABYLON.Mesh.CreateCylinder("target", 2, 0, 1, 6, 1, scene, false);
         target.scaling = new BABYLON.Vector3(7, 7, 7)
@@ -344,7 +344,7 @@ var createScene = function () {
 
     buttonStreetBackWard.onPointerDownObservable.add(function () {
         direction = Direction.BACK;
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map, direction)
 
     });
 
@@ -357,7 +357,7 @@ var createScene = function () {
 
     buttonStreetForward.onPointerDownObservable.add(function () {
         direction = Direction.FORWARD
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map, direction)
 
     });
 
@@ -369,7 +369,7 @@ var createScene = function () {
 
     buttonStreetLeft.onPointerDownObservable.add(function () {
         direction = Direction.LEFT;
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map, direction)
 
     });
 
@@ -381,7 +381,7 @@ var createScene = function () {
 
     buttonStreetRight.onPointerDownObservable.add(function () {
         direction = Direction.RIGHT;
-        editMap.handlePointerClick(editMap.map,direction)
+        editMap.handlePointerClick(editMap.map, direction)
 
     });
 
@@ -399,7 +399,7 @@ var createScene = function () {
     buttonSuppress.isVisible = false;
     UiPanelEditMap.addControl(buttonSuppress)
 
-    
+
 
 
     buttonEdit.onPointerDownObservable.add(function () {
@@ -409,9 +409,9 @@ var createScene = function () {
         buttonStreetForward.isVisible = true;
         buttonStreetLeft.isVisible = true;
         buttonStreetRight.isVisible = true;
-        buttonSelect.isEnabled=false;
-        buttonStop.isEnabled=false;
-        buttonStart.isEnabled=false;
+        buttonSelect.isEnabled = false;
+        buttonStop.isEnabled = false;
+        buttonStart.isEnabled = false;
         for (let i = 0; i < entities.length; i++) {
             entities[i].getMesh().dispose();
             nameEntities[i].dispose();
@@ -419,19 +419,22 @@ var createScene = function () {
 
         }
 
+
         if (editMap === undefined) {
             editMap = new EditMap(3000, 3000, 200, scene)
             editMap.createEditMap(gridMaterial)
 
+
+
         } else {
             editMap.edit.forEach(tileMap => {
                 tileMap.box.isVisible = true;
-
-
             })
         }
-        
+
+
         editMap.handlePointerHover();
+
 
 
     });
@@ -440,40 +443,45 @@ var createScene = function () {
     buttonQuitEdit.onPointerDownObservable.add(function () {
         buttonQuitEdit.isVisible = false;
         buttonSuppress.isVisible = false;
-        
+
         buttonStreetBackWard.isVisible = false;
         buttonStreetForward.isVisible = false;
         buttonStreetLeft.isVisible = false;
         buttonStreetRight.isVisible = false;
-        buttonSelect.isEnabled=true;
-        buttonStop.isEnabled=true;
-        buttonStart.isEnabled=true;
+        buttonSelect.isEnabled = true;
+        buttonStop.isEnabled = true;
+        buttonStart.isEnabled = true;
 
-        editMap.map[0].createPath()
-        editMap.map[0].pathPoint.forEach(path =>{
-            var direction = editMap.map[0].direction;
-            editMap.concMap.push({direction,path})
-        })
-        
-        for(let i=1;i < editMap.map.length;i++){
+        if (editMap.map.length > 0) {
+            if (editMap.map[0].pathPoint.length === 0) {
+                editMap.map[0].createPath()
+                editMap.map[0].pathPoint.forEach(path => {
+                    var direction = editMap.map[0].direction;
+                    editMap.concMap.push({ direction, path })
+                })
+            }
             
-            editMap.map[i].createPath(editMap.concMap[editMap.concMap.length-1])
-            editMap.map[i].pathPoint.forEach(path =>{
-                var direction = editMap.map[i].direction;
-                editMap.concMap.push({direction,path})
-            })
+            for (let i = 1; i < editMap.map.length; i++) {
+                if (editMap.map[i].pathPoint.length === 0) {
+                    editMap.map[i].createPath(editMap.concMap[editMap.concMap.length - 1])
+                    editMap.map[i].pathPoint.forEach(path => {
+                        var direction = editMap.map[i].direction;
+                        editMap.concMap.push({ direction, path })
+                    })
+                }
+
+            }
+
         }
 
-        
-        
         editMap.delete()
 
     })
 
     buttonSuppress.onPointerDownObservable.add(function () {
         suppressImage = true
-        editMap.handleSuppressClick(editMap,editMap.edit, editMap.map, editMap.scene)
-        
+        editMap.handleSuppressClick(editMap, editMap.edit, editMap.map, editMap.scene, editMap.concMap)
+
     });
 
     var paths = []
@@ -485,7 +493,7 @@ var createScene = function () {
             imageStreet[0].position = mouseTarget
         }
 
-        
+
         if (entitiesCreated === true && selectedEntity === false) {
             for (let i = 0; i < entities.length; i++) {
                 // Update entities

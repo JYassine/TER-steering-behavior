@@ -13,8 +13,8 @@ export default class Behaviour {
         this.desiredSeparation=5
         this.ahead = undefined;
         this.ahead2 = undefined;
-        this.maxSeeAhead = 5
-        this.maxAvoidForce = 2.5
+        this.maxSeeAhead = 10
+        this.maxAvoidForce = 3
         this.avoidanceForce = new BABYLON.Vector3(0, 0, 0)
 
     }
@@ -26,8 +26,7 @@ export default class Behaviour {
     }
 
     avoid(listObstacles) {
-        
-        
+    
         var dynamic_length=0;
         dynamic_length = this.maxSeeAhead + (this.velocity.length() / this.maxSpeed) * this.maxSeeAhead;
         dynamic_length = parseInt(dynamic_length)
@@ -110,7 +109,10 @@ export default class Behaviour {
         for (let i = 0; i < listObstacles.length; i++) {
             obstacle = listObstacles[i];
             if (this.lineIntersectsCircle(this.ahead,this.ahead2,obstacle)) {
+                var material = obstacle.material.clone()
+                material.diffuseColor= new BABYLON.Color3(0,1,0)
                 collision = true
+                obstacle.material = material
             }
 
             if (collision && (mostThreatening === undefined || BABYLON.Vector3.Distance(this.position, obstacle.position) < BABYLON.Vector3.Distance(this.position, mostThreatening.position))) {

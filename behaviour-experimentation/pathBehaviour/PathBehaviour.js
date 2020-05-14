@@ -65,17 +65,16 @@ export default class PathBehaviour extends Behaviour {
                 this.normal = normalPoint;
                 this.normal.y=0
                 
-                var dir = b.subtract(a)
-                
-                dir.normalize();
+                var dir = new BABYLON.Vector3(0,0,0)
+
                 if(dirB === Direction.RIGHT){
-                    dir.x=-5;
+                    dir.x=-6;
                 }else if(dirB===Direction.BACK){
-                    dir.z+=5;
+                    dir.z+=6;
                 }else if(dirB===Direction.LEFT){
-                    dir.x+=5;
+                    dir.x+=6;
                 }else{
-                    dir.z-=5;
+                    dir.z-=6;
                 }
 
 
