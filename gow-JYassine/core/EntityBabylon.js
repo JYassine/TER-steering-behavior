@@ -23,7 +23,7 @@ export default class EntityBabylon {
     entityAngle = 0
 
     // guaranteed minimum angle spin per frame no matter what your current speed is
-    minimumDrift = Math.PI / 800 //Math.PI/600;
+    minimumDrift = Math.PI/550 //Math.PI / 800 //Math.PI/600;
 
     // how violent is a crash with an obstacle
     // upon hitting an obstacle, your momentum is multiplied by the value below to determine
@@ -117,7 +117,6 @@ export default class EntityBabylon {
             // crash duration scales with momentum at the impact time
             this.currentCrashDuration = this.minCrashDuration + (this.speedRatio * (this.topSpeed / 1.6));
             this.crashIntensity = (this.topSpeed / 6) + (this.momentum / 3);
-            console.log([this.minCrashDuration, this.currentCrashDuration])
             // there's a minimum crashing recoil speed, else some bad hitbox things can happen
             // also a crashing can't exceed the maximum backtracking speed
             // the recoil can't exceed the backtrack speed
@@ -130,6 +129,9 @@ export default class EntityBabylon {
         // this.controls is disabled by game over screen for example
         if ((this.currentCrashDuration > 0) || !(this.controls)) {
             this.currentCrashDuration = Math.max(this.currentCrashDuration - 1, 0);
+            
+            //active collisions again when crash duration finished
+            hitbox.checkCollisions = !(this.currentCrashDuration);
         }
         else {
             isBacktracking = (map["s"] || map["S"]);
@@ -148,7 +150,7 @@ export default class EntityBabylon {
             var drift = ((map["q"] || map["Q"]) ? -1 :
                 (map["d"] || map["D"]) ? 1 : 0);
             if (drift != 0) {
-                var driftAngle = (this.minimumDrift * drift) + (this.speedRatio * (drift * (Math.PI / 350))); //speedRatio*(drift*(Math.PI / 100))
+                var driftAngle = (this.minimumDrift * drift) + (this.speedRatio * (drift * (Math.PI / 150))); //speedRatio*(drift*(Math.PI / 100))
                 this.mesh.rotate(BABYLON.Axis.Y, driftAngle, BABYLON.Space.WORLD);
                 hitbox.rotate(BABYLON.Axis.Y, driftAngle, BABYLON.Space.WORLD);
                 this.entityAngle += driftAngle;

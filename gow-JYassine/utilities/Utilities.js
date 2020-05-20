@@ -1,10 +1,32 @@
 
+// contains various functions which could find some use
+// in various contexts
+
 var Utilities = {
 
 
     getRandomInt : (max) => {
         return Math.floor(Math.random() * Math.floor(max));
-    },
+	},
+	
+	// return mesh's height on Z
+	meshZwidth : (someMesh) => {
+		let tmp = someMesh.getBoundingInfo();
+		let tagueuleConnard = Math.abs(tmp.maximum.z - tmp.minimum.z) * someMesh.scaling.z
+		return tagueuleConnard
+	},
+	// papié collé ses enballé
+	meshXwidth : (someMesh) => {
+		let tmp = someMesh.getBoundingInfo();
+		let tagueuleConnard = Math.abs(tmp.maximum.x - tmp.minimum.x) * someMesh.scaling.x
+		return tagueuleConnard
+	},
+	//ses enballer ses peser ses gagner
+	meshYwidth : (someMesh) => {
+		let tmp = someMesh.getBoundingInfo();
+		let tagueuleConnard = Math.abs(tmp.maximum.y - tmp.minimum.y) * someMesh.scaling.y
+		return tagueuleConnard
+	},
 
     // simplified face funtion
 	facePoint : (rotatingObject, pointToRotateTo) => {
@@ -75,6 +97,14 @@ var Utilities = {
 		}));
 		scene.actionManager.registerAction(actionKeyup)
 		scene.actionManager.registerAction(actionKeydown)
+	},
+
+	// give me minutes, seconds and CS, I'll write the time correctly
+	writeTime : function(min, secs, cs) {
+		let minText = ((min < 10) ? "0" : "") + min; 
+		let secsText = ((secs < 10) ? "0" : "") + secs; 
+		let csText = ((cs < 10) ? "0" : "") + ((cs == 100) ? "00" : cs);
+		return minText + ":" + secsText + ":" + csText
 	}
 
 

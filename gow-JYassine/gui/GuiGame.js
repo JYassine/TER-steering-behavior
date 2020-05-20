@@ -1,11 +1,11 @@
  var GuiGame = {
 
     displayGUI : (textPassed, babylonGUI,textStart,maxTime,
-        numberCheckPointPassed,numberCheckPoint,textTimer,timer) => { //,momentum) => {
+        numberCheckPointPassed,numberCheckPoint,textTimer) => { //,momentum) => {
         babylonGUI.createGui()
 
         // GUI FOR TEXT STARTING
-        textStart.text = "Click anywhere to START ! You have " + maxTime + " seconds to finish ! ";
+        textStart.text = "Click anywhere to start !\n You have " + maxTime + " seconds to finish ! ";
         babylonGUI.decorText(textStart)
         babylonGUI.add(textStart);
 
@@ -46,7 +46,7 @@
         babylonGUI.positionElement(rectTimer,BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP,BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT)
         babylonGUI.add(rectTimer);
 
-        textTimer.text = "Time : " + timer;
+        textTimer.text = textTimer.text;
         rectTimer.addControl(textTimer);
 
         
@@ -93,6 +93,11 @@
         babylonGUI.decor(buttonD,meContMoveBtnHeight,meContMoveBtnWidth,"white",2,"red",style)
         menuContainerMoveGrid.addControl(buttonD, 2, 3);
 
+        var buttonS = BABYLON.GUI.Button.CreateSimpleButton("S", "S");
+        babylonGUI.positionElement(buttonS, BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM,BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER)
+        babylonGUI.decor(buttonS,meContMoveBtnHeight,meContMoveBtnWidth,"white",2,"red",style)
+        menuContainerMoveGrid.addControl(buttonS, 2, 2);
+
         document.addEventListener("keydown", function (e) {
             switch (e.keyCode) {
                 case 90:
@@ -103,6 +108,9 @@
                     break;
                 case 68:
                     buttonD.background = "green";
+                    break;
+                case 83:
+                    buttonS.background = "green";
                     break;
 
 
@@ -120,12 +128,15 @@
                 case 68:
                     buttonD.background = "red";
                     break;
+                case 83:
+                    buttonS.background = "red";
+                    break;
             }
 
         });
     },
 
-    displayGUIGameOver : (babylonGUI,panel,scene,numberCheckPointPassed,timer,textTimer,limitZ,winner)=>{
+    displayGUIGameOver : (babylonGUI,panel,winner)=>{
         
         babylonGUI.add(panel);
 

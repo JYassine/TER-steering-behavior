@@ -9,20 +9,20 @@ export default class GameLogic {
     }
 
 
-    gameOver(winner, panelEndGame, numberCheckPointPassed, timer, textTimer, limitZ) {
+    gameOver(winner, panelEndGame, numberCheckPointPassed, textTimer, limitZ) {
 
         this.audioManager.find("backgroundSong").stop()
         this.audioManager.find("clockSong").stop()
 
         if (winner) {
 
-            GuiGame.displayGUIGameOver(this.babylonGUI, panelEndGame, this.scene, numberCheckPointPassed, timer, textTimer, limitZ, true)
+            GuiGame.displayGUIGameOver(this.babylonGUI, panelEndGame, true)
             this.audioManager.find("winnerSong").play()
 
 
         } else {
 
-            GuiGame.displayGUIGameOver(this.babylonGUI, panelEndGame, this.scene, numberCheckPointPassed, timer, textTimer, limitZ, false)
+            GuiGame.displayGUIGameOver(this.babylonGUI, panelEndGame, false)
             this.audioManager.find("loserSong").play()
         }
 
