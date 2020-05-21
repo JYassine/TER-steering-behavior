@@ -17,6 +17,7 @@ var UiPanelSelection;
 var advancedTexture;
 var nameEntities = []
 var ts = []
+var mapRoads=[];
 var direction;
 var editMap;
 var UiPanel;
@@ -113,8 +114,8 @@ var createScene = function () {
         entity.material = materialShip;
         entity.checkCollisions = true
         entity.position.y = editMap.map[0].road.position.y
-        entity.position.z = editMap.map[0].road.position.z+300
-        entity.position.x = editMap.map[0].road.position.x
+        entity.position.z = editMap.map[0].road.position.z
+        entity.position.x = editMap.map[0].road.position.x-100
 
         target = BABYLON.Mesh.CreateCylinder("target", 2, 0, 1, 6, 1, scene, false);
         target.scaling = new BABYLON.Vector3(7, 7, 7)
@@ -344,7 +345,7 @@ var createScene = function () {
 
     buttonStreetBackWard.onPointerDownObservable.add(function () {
         direction = Direction.BACK;
-        editMap.handlePointerClick(editMap.map, direction)
+        editMap.handlePointerClick(editMap.map, direction,scene,editMap.concMap)
 
     });
 
@@ -357,7 +358,8 @@ var createScene = function () {
 
     buttonStreetForward.onPointerDownObservable.add(function () {
         direction = Direction.FORWARD
-        editMap.handlePointerClick(editMap.map, direction)
+        
+        editMap.handlePointerClick(editMap.map, direction,scene,editMap.concMap)
 
     });
 
@@ -369,7 +371,8 @@ var createScene = function () {
 
     buttonStreetLeft.onPointerDownObservable.add(function () {
         direction = Direction.LEFT;
-        editMap.handlePointerClick(editMap.map, direction)
+        
+        editMap.handlePointerClick(editMap.map, direction,scene,editMap.concMap)
 
     });
 
@@ -381,7 +384,8 @@ var createScene = function () {
 
     buttonStreetRight.onPointerDownObservable.add(function () {
         direction = Direction.RIGHT;
-        editMap.handlePointerClick(editMap.map, direction)
+        
+        editMap.handlePointerClick(editMap.map, direction,scene,editMap.concMap)
 
     });
 
@@ -435,8 +439,6 @@ var createScene = function () {
 
         editMap.handlePointerHover();
 
-
-
     });
 
 
@@ -452,28 +454,14 @@ var createScene = function () {
         buttonStop.isEnabled = true;
         buttonStart.isEnabled = true;
 
-        if (editMap.map.length > 0) {
-            if (editMap.map[0].pathPoint.length === 0) {
-                editMap.map[0].createPath()
-                editMap.map[0].pathPoint.forEach(path => {
-                    var direction = editMap.map[0].direction;
-                    editMap.concMap.push({ direction, path })
-                })
-            }
-            
-            for (let i = 1; i < editMap.map.length; i++) {
-                if (editMap.map[i].pathPoint.length === 0) {
-                    editMap.map[i].createPath(editMap.concMap[editMap.concMap.length - 1])
-                    editMap.map[i].pathPoint.forEach(path => {
-                        var direction = editMap.map[i].direction;
-                        editMap.concMap.push({ direction, path })
-                    })
-                }
-
-            }
-
-        }
-
+       editMap.map.forEach(road=>{
+            road.pathPoint.forEach(p=>{
+                var direction = road.direction
+                var path = p
+                mapRoads.push({direction,path})
+            })
+        })
+    
         editMap.delete()
 
     })
@@ -501,7 +489,7 @@ var createScene = function () {
                 entities[i].t.position.y = 1
                 entities[i].t.rotate()
                 entities[i].t.separate(entities)
-                entities[i].run(editMap.concMap)
+                entities[i].run(mapRoads)
                 entities[i].t.update()
 
                 // Update targets

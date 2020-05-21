@@ -55,7 +55,7 @@ export default class EditMap {
     }
 
 
-    handlePointerClick(map, direction) {
+    handlePointerClick(map, direction,scene,concMap) {
 
         var materialHover = new BABYLON.StandardMaterial("shiptx1", this.scene);
         materialHover.diffuseColor = new BABYLON.Color3(0, 0, 1); //Red
@@ -82,9 +82,47 @@ export default class EditMap {
                 tileMap.box.dispose()
                 tileMap.editable = false;
                 var road1 = new Road(200, positionTile, direction)
-                road1.createRoad(this.scene)
+                road1.createRoad(scene)
                 map.push(road1)
+                
+                if (map.length > 0) {
 
+                    if (map[0].pathPoint.length === 0) {
+                        map[0].createPath()
+                        map[0].pathPoint.forEach(path => {
+                            var direction = map[0].direction;
+                            concMap.push({ direction, path })
+                        })
+                    }else{
+                        
+                        map[map.length-1].createPath(map[map.length-2].pathPoint[map[map.length-2].pathPoint.length-1])
+                        map[map.length-1].pathPoint.forEach(path => {
+                            var direction = map[map.length-1].direction;
+                            concMap.push({ direction, path })
+                        })
+
+                        
+
+                    }
+        
+                }
+                
+                
+                scene.removeMesh( scene.getMeshByName("path"));
+
+                var myConc = []
+
+                map.forEach(road=>{
+                    road.pathPoint.forEach(point=>{
+                        var clonePath = point.clone()
+                        clonePath.y+=20
+                        myConc.push(clonePath)
+                    });
+                });
+
+
+                var track = BABYLON.MeshBuilder.CreateLines("path", {points: myConc}, scene);               
+               
             }));
         });
 
@@ -98,14 +136,15 @@ export default class EditMap {
         materialHover.diffuseColor = new BABYLON.Color3(1, 0, 0); //Red
 
 
-        var materialOutHover = new BABYLON.StandardMaterial("myMaterial", this.scene);
-
-        materialOutHover.diffuseTexture = new BABYLON.Texture("../resources/droite.jpg", this.scene);
-
 
         var gridMaterial = new BABYLON.GridMaterial("grid", this.scene);
         gridMaterial.gridRatio = 10
 
+        
+        var materialOutHover = new BABYLON.StandardMaterial("myMaterial", this.scene);
+
+        var roadmaterialpt = new BABYLON.RoadProceduralTexture("customtext", 512, scene);
+        materialOutHover.diffuseTexture = roadmaterialpt;
 
         this.map.forEach(tileMap => {
             tileMap.road.actionManager = new BABYLON.ActionManager(this.scene);
@@ -125,15 +164,32 @@ export default class EditMap {
                 for (let i = 0; i < map.length; i++) {
                     if (posTile.x === map[i].road.position.x && posTile.z === map[i].road.position.z) {
                         map.splice(i, 1)
-                        if (concMap.length > 0) {
-                            var startP = i * (20);
-                            concMap.splice(startP+1,21)
-
-                        }
+                        concMap=[]
+                        map.forEach(road=>{
+                            road.pathPoint.forEach(p=>{
+                                var direction = road.direction
+                                var path = p
+                                concMap.push({direction,path})
+                            })
+                        })
 
                         break;
                     }
                 }
+                
+
+                var myConc=[]
+                var index = scene.removeMesh( scene.getMeshByName("path"));
+
+                map.forEach(road=>{
+                    road.pathPoint.forEach(point=>{
+                        var clonePath = point.clone()
+                        clonePath.y+=20
+                        myConc.push(clonePath)
+                    });
+                });
+               
+                var track = BABYLON.MeshBuilder.CreateLines("path", {points: myConc}, scene);
 
 
 
@@ -165,11 +221,11 @@ export default class EditMap {
         })
         this.map.forEach(m=>{
             
-            var materialOutHover = new BABYLON.StandardMaterial("myMaterial", this.scene);
+            //var materialOutHover = new BABYLON.StandardMaterial("myMaterial", this.scene);
 
-            materialOutHover.diffuseTexture = new BABYLON.Texture("../resources/droite.jpg", this.scene);
+            //materialOutHover.diffuseTexture = new BABYLON.Texture("../resources/droite.jpg", this.scene);
             m.road.actionManager = undefined;
-            m.road.material=materialOutHover
+            //m.road.material=materialOutHover
         })
     }
 }

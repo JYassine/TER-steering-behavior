@@ -15,8 +15,13 @@ export default class Road {
 
     createRoad(scene) {
 
-        var myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
-        myMaterial.diffuseTexture = new BABYLON.Texture("../resources/droite.jpg", scene);
+
+        
+        var myMaterial = new BABYLON.StandardMaterial("road", scene);
+        var roadmaterialpt = new BABYLON.RoadProceduralTexture("customtext", 512, scene);
+        myMaterial.diffuseTexture = roadmaterialpt;
+        //var myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
+        //myMaterial.diffuseTexture = new BABYLON.Texture("../resources/image/road_image.png", scene);
         var road = BABYLON.MeshBuilder.CreateBox("myBox", { height: this.height, width: this.height, depth: 10 }, scene);
 
         switch (this.direction) {
@@ -53,13 +58,13 @@ export default class Road {
         switch (this.direction) {
             case Direction.BACK:
                 if (lastPoint !== undefined) {
-                    for (let i = lastPoint.path.z; i < (this.position.z) + (this.height / 2); i += 10) {
+                    for (let i = lastPoint.z; i < (this.position.z) + (this.height / 2); i += 30) {
                         this.pathPoint.push(new BABYLON.Vector3(this.position.x, this.position.y, i))
                     }
                     break;
 
                 } else {
-                    for (let i = (this.position.z) - (this.height / 2); i < (this.position.z) + (this.height / 2); i += 10) {
+                    for (let i = (this.position.z) - (this.height / 2); i < (this.position.z) + (this.height / 2); i += 30) {
                         this.pathPoint.push(new BABYLON.Vector3(this.position.x, this.position.y, i))
                     }
                     break;
@@ -68,13 +73,13 @@ export default class Road {
             case Direction.FORWARD:
 
                 if (lastPoint !== undefined) {
-                    for (let i = lastPoint.path.z; i > (this.position.z) - (this.height / 2); i -= 10) {
+                    for (let i = lastPoint.z; i > (this.position.z) - (this.height / 2); i -= 30) {
                         this.pathPoint.push(new BABYLON.Vector3(this.position.x, this.position.y, i))
                     }
                     break;
 
                 } else {
-                    for (let i = (this.position.z) + (this.height / 2); i > (this.position.z) - (this.height / 2); i -= 10) {
+                    for (let i = (this.position.z) + (this.height / 2); i > (this.position.z) - (this.height / 2); i -= 30) {
                         this.pathPoint.push(new BABYLON.Vector3(this.position.x, this.position.y, i))
                     }
                     break;
@@ -82,13 +87,13 @@ export default class Road {
             case Direction.LEFT:
 
                 if (lastPoint !== undefined) {
-                    for (let i = lastPoint.path.x; i < (this.position.x) + (this.height / 2); i += 10) {
+                    for (let i = lastPoint.x; i < (this.position.x) + (this.height / 2); i += 30) {
                         this.pathPoint.push(new BABYLON.Vector3(i, this.position.y, this.position.z))
                     }
                     break;
 
                 } else {
-                    for (let i = (this.position.x) - (this.height / 2); i < (this.position.x) + (this.height / 2); i += 10) {
+                    for (let i = (this.position.x) - (this.height / 2); i < (this.position.x) + (this.height / 2); i += 30) {
                         this.pathPoint.push(new BABYLON.Vector3(i, this.position.y, this.position.z))
                     }
                     break;
@@ -96,13 +101,13 @@ export default class Road {
             case Direction.RIGHT:
 
                 if (lastPoint !== undefined) {
-                    for (let i = lastPoint.path.x; i > (this.position.x) - (this.height / 2); i -= 10) {
+                    for (let i = lastPoint.x; i > (this.position.x) - (this.height / 2); i -= 30) {
                         this.pathPoint.push(new BABYLON.Vector3(i, this.position.y, this.position.z))
                     }
                     break;
 
                 } else {
-                    for (let i = (this.position.x) + (this.height / 2); i > (this.position.x) - (this.height / 2); i -= 10) {
+                    for (let i = (this.position.x) + (this.height / 2); i > (this.position.x) - (this.height / 2); i -= 30) {
                         this.pathPoint.push(new BABYLON.Vector3(i, this.position.y, this.position.z))
                     }
                     break;

@@ -36,7 +36,7 @@ var paramsGUI = [
     { name: "maxForce", anim: 30, weight: 30 },
     { name: "mass", anim: 60, weight: 60 },
     { name: "desiredSeparation", anim: 300, weight: 300 },
-    {name: "maxSeeAhead", anim: 50, weight: 50}
+    {name: "maxSeeAhead", anim: 50, weight: 50  }
 ]
 
 
