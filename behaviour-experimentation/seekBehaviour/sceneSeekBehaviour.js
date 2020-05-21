@@ -12,6 +12,7 @@ var pursuerCreated = false;
 var selectedEntity = false;
 var pursuers = []
 var checkboxGUI = []
+var camera;
 var namesPursuers = [];
 var mouseTargeted = false;
 var wanderTargeted = false;
@@ -50,12 +51,12 @@ var paramsGUI = [
 ]
 
 var paramsGUIWander = [
-    
+
     { name: "wanderDistance", anim: 10, weight: 10 },
     { name: "wanderRadius", anim: 2, weight: 2 },
-    
+
     { name: "maxSpeed", anim: 6, weight: 6 },
-    { name: "maxForce", anim: 30, weight: 30 }, 
+    { name: "maxForce", anim: 30, weight: 30 },
 ]
 
 
@@ -65,13 +66,18 @@ var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, 
 var createScene = function () {
 
     var scene = new BABYLON.Scene(engine);
-    var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(100, 200, 600), scene);
+    camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(100, 200, 600), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
     camera.attachControl(canvas, true);
+
+
+
+    // NOTE:: SET CAMERA TARGET AFTER THE TARGET'S CREATION AND NOTE CHANGE FROM BABYLONJS V 2.5
+    // targetMesh created here.
     var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
     light.intensity = 0.7;
 
-    var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 1000, height: 1000 }, scene);
+    var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 10000, height: 10000 }, scene);
 
     var materialShip = new BABYLON.StandardMaterial("shiptx1", scene);
     materialShip.diffuseColor = new BABYLON.Color3(1, 0, 0); //Red
@@ -145,9 +151,9 @@ var createScene = function () {
         namesPursuers.push(xChar);
 
         //Vector of seek behaviours
-        var decorMaxSpeed = new DecorVector(seekBehaviour.mesh.position,100,scene)
-        var decorMaxForce = new DecorVector(seekBehaviour.mesh.position,100,scene)
-        var decorVelocity = new DecorVector(seekBehaviour.mesh.position,100,scene)
+        var decorMaxSpeed = new DecorVector(seekBehaviour.mesh.position, 100, scene)
+        var decorMaxForce = new DecorVector(seekBehaviour.mesh.position, 100, scene)
+        var decorVelocity = new DecorVector(seekBehaviour.mesh.position, 100, scene)
         decorMaxSpeed.create(colorVectors[Object.keys(colorVectors)[0]], false)
         decorMaxForce.create(colorVectors[Object.keys(colorVectors)[1]], false)
         decorVelocity.create(colorVectors[Object.keys(colorVectors)[2]], false)
@@ -366,11 +372,11 @@ var createScene = function () {
         wTarget.position.y = 0
         wanderTarget = new WanderBehaviour(wTarget)
 
-        var circleDecor = new DecorCircle(BABYLON.Vector3.Zero(),50,scene)
-        circleDecor.create(new BABYLON.Color3(0,1,0),false)
+        var circleDecor = new DecorCircle(BABYLON.Vector3.Zero(), 50, scene)
+        circleDecor.create(new BABYLON.Color3(0, 1, 0), false)
         circlesWanders.push(circleDecor)
-        var decorDistance = new DecorVector(wanderTarget.position,100,scene)
-        var decorRadius = new DecorVector(circlesWanders[circlesWanders.length - 1].meshVisualization.position,100,scene)
+        var decorDistance = new DecorVector(wanderTarget.position, 100, scene)
+        var decorRadius = new DecorVector(circlesWanders[circlesWanders.length - 1].meshVisualization.position, 100, scene)
         decorDistance.create(new BABYLON.Color3(1, 0, 0), false)
         decorRadius.create(new BABYLON.Color3(0, 0, 1), false)
 
@@ -380,13 +386,26 @@ var createScene = function () {
 
         wanderTarget.wanderDistance = paramsGUIWander[0].anim.toFixed(2)
         wanderTarget.wanderRadius = paramsGUIWander[1].anim.toFixed(2)
-        wanderTarget.maxSpeed=paramsGUIWander[2].anim.toFixed(2)
+        wanderTarget.maxSpeed = paramsGUIWander[2].anim.toFixed(2)
         wanderTarget.maxForce = paramsGUIWander[3].anim.toFixed(2)
 
 
         wanderTargeted = true;
         mouseTargeted = false;
         checkboxMouse.isChecked = false
+
+        camera.dispose()
+        camera = undefined;
+        camera = new BABYLON.FollowCamera("FollowCam", new BABYLON.Vector3(0, 2000, 600), scene);
+        
+        camera.radius = 1000;
+        camera.heightOffset = 600;
+        camera.rotationOffset = 30;
+        camera.cameraAcceleration = 0.005
+        camera.maxCameraSpeed = 40
+        camera.attachControl(canvas, true);
+
+        
 
         if (UiPanelWander === undefined) {
             UiPanelWander = new BABYLON.GUI.StackPanel();
@@ -417,6 +436,11 @@ var createScene = function () {
     checkboxMouse.onIsCheckedChangedObservable.add(function (value) {
         if (value) {
             mouseTargeted = true;
+            camera.dispose()
+            camera=undefined;
+            camera = new BABYLON.ArcRotateCamera("Camera", 0, 0, 10, new BABYLON.Vector3(pursuers[pursuers.length-1].position.x+1000, pursuers[pursuers.length-1].position.y+600, pursuers[pursuers.length-1].position.z+600, scene));
+            camera.setTarget(BABYLON.Vector3.Zero());
+            camera.attachControl(canvas, true);
             wanderTargeted = false;
             if (wanderTarget != undefined) {
 
@@ -459,6 +483,7 @@ var createScene = function () {
 
             target.x = mouseTarget.x
             target.z = mouseTarget.z
+
 
 
         }
@@ -504,6 +529,13 @@ var createScene = function () {
 
                 // Update pursuers  
                 target.y = pursuers[i].position.y
+
+                camera.targetMesh = target;
+                if(wanderTargeted){
+                    camera.lockedTarget = pursuers[i].mesh; //version 2.5 onwards
+                    
+
+                }
                 pursuers[i].rotate()
                 pursuers[i].separate(pursuers)
                 pursuers[i].run(target)

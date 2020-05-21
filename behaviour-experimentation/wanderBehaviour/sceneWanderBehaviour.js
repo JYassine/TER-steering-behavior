@@ -270,7 +270,11 @@ var createScene = function () {
 
         })
 
-        Utilities.updateTextMesh(entities[i].name, namesPursuers[i], scene);
+        for(let i=0;i<entities.length;i++){
+            
+         Utilities.updateTextMesh(entities[i].name, nameEntities[i], scene);
+
+        }
 
     });
 
@@ -309,7 +313,6 @@ var createScene = function () {
                 //Update name of entities
                 nameEntities[i].dispose()
                 nameEntities[i].position = entities[i].position.clone()
-                nameEntities[i].rotation.y = dR
 
             }
         }
