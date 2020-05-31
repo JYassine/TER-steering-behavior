@@ -2,8 +2,8 @@ import Behaviour from "../Behaviour.js";
 
 export default class WanderBehaviour extends Behaviour{
 
-    constructor(mesh){
-        super(mesh);
+    constructor(){
+        super()
         this.wanderCenter=0;
         this.wanderDistance=0
         this.wanderRadius=0
@@ -16,9 +16,9 @@ export default class WanderBehaviour extends Behaviour{
     }
 
 
-    run(target) {
+    apply(vehicle) {
 
-        this.wanderCenter = new BABYLON.Vector3(this.velocity.x,this.velocity.y,this.velocity.z);
+        this.wanderCenter = new BABYLON.Vector3(vehicle.velocity.x,vehicle.velocity.y,vehicle.velocity.z);
         this.wanderCenter.normalize();
         var wanderCenterScaled = this.wanderCenter.scale(this.wanderDistance)
         this.wanderCenter=wanderCenterScaled;
@@ -34,9 +34,7 @@ export default class WanderBehaviour extends Behaviour{
         var displacementScaled = this.displacement.scale(this.wanderRadius)
         this.displacement=displacementScaled
         this.wanderForce = this.wanderCenter.add(this.displacement);
-        this.applyForce(this.wanderForce);
-        
-    
+        vehicle.applyForce(this.wanderForce);
 
        
     }

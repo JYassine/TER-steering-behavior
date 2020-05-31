@@ -19,13 +19,13 @@ export default class DecorCircle extends Decor {
         this.meshVisualization.material = materialCircle
     }
 
-    update(meshToVisualize) {
+    update(meshToVisualize,position) {
         
         super.update(meshToVisualize)
         var directionRotationCenter = (meshToVisualize.wanderCenter.clone()).normalize()
         var drCenter = Math.atan2(directionRotationCenter.z, -directionRotationCenter.x)
 
-        this.meshVisualization.position = meshToVisualize.wanderCenter.clone().add(meshToVisualize.position.clone())
+        this.meshVisualization.position = meshToVisualize.wanderCenter.clone().add(position.clone())
         this.meshVisualization.locallyTranslate(new BABYLON.Vector3(-28 * meshToVisualize.wanderDistance, 0, 0))
         this.meshVisualization.rotation.y = drCenter
     }

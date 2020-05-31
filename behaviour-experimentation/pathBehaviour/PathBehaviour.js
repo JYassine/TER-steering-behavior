@@ -1,17 +1,17 @@
-import Behaviour from "../Behaviour.js";
 import SeekBehaviour from "../seekBehaviour/SeekBehaviour.js";
 import Direction from "./Direction.js";
+import Behaviour from "../Behaviour.js";
 
 export default class PathBehaviour extends Behaviour {
 
-    constructor(mesh) {
-        super(mesh)
+    constructor(paths,target) {
+        super()
+        this.paths = paths
         this.radiusPath=2
-        
-        this.t = new SeekBehaviour(this.mesh)
-        this.t.maxSpeed = 5
-        this.t.maxForce = 10
-        this.t.mass = 50
+        this.targetSeekBehaviour = target
+        this.targetSeekBehaviour.maxSpeed = 5
+        this.targetSeekBehaviour.maxForce = 10
+        this.targetSeekBehaviour.mass = 50
         this.targetP = undefined;
         this.predictpos = undefined;
         this.normal = undefined;
@@ -27,18 +27,18 @@ export default class PathBehaviour extends Behaviour {
         return difference < tolerance && difference > -tolerance
     }
 
-    run(paths) {
+    apply(vehicle) {
 
-        var predict = this.velocity.clone().normalize().scale(20)
-        this.predictpos = predict.add(this.position)
+        var predict = vehicle.velocity.clone().normalize().scale(20)
+        this.predictpos = predict.add(vehicle.position)
         var dirB;
 
         let worldRecord = 1000000;
 
-        for (let i = 0; i < paths.length-1; i++) {
-            var a = paths[i].path
-            var b = paths[i+1].path
-            dirB = paths[i+1].direction
+        for (let i = 0; i < this.paths.length-1; i++) {
+            var a = this.paths[i].path
+            var b = this.paths[i+1].path
+            dirB = this.paths[i+1].direction
             var normalPoint = this.normalPoint(this.predictpos, a, b);
 
             var distance=null;
@@ -87,9 +87,9 @@ export default class PathBehaviour extends Behaviour {
         }
 
         if (worldRecord > this.radiusPath) {
-            this.t.run(this.targetP)
+            vehicle.applyBehaviour(new SeekBehaviour(this.targetSeekBehaviour.mesh.position))
         }else{
-            this.t.applyForce(new BABYLON.Vector3(0,0,0))
+            vehicle.applyForce(new BABYLON.Vector3(0,0,0))
         }
 
     }

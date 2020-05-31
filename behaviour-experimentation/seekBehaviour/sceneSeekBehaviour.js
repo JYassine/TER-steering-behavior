@@ -2,6 +2,7 @@ import SeekBehaviour from "./SeekBehaviour.js";
 import Utilities from "../Utilities.js";
 import WanderBehaviour from "../wanderBehaviour/WanderBehaviour.js"
 import GUI from "../GUI/GUI.js"
+import Vehicle from "../Vehicle.js"
 import DecorCircle from "../GUI/DecorCircle.js";
 import DecorVector from "../GUI/DecorVector.js";
 
@@ -16,7 +17,8 @@ var camera;
 var namesPursuers = [];
 var mouseTargeted = false;
 var wanderTargeted = false;
-var wanderTarget;
+var wanderBehaviour;
+var vehicleBehaviour;
 var UiPanelWander;
 var UiPanelSelection;
 var UiPanelTarget;
@@ -27,6 +29,7 @@ var mouseText;
 var checkboxMouse;
 var UiPanel;
 var advancedTexture;
+var seekBehaviours=[];
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "yellow": new BABYLON.Color3(1, 1, 0),
@@ -122,38 +125,44 @@ var createScene = function () {
 
 
     buttonStart.onPointerDownObservable.add(function () {
-        var pursuer;
-        var seekBehaviour;
+        var vehicle;
+        var pursuerMesh;
+        var vehicle;
 
         /** Pursuer */
-        pursuer = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
-        pursuer.scaling = new BABYLON.Vector3(20, 20, 20)
-        pursuer.material = materialShip;
-        pursuer.checkCollisions = true
-        pursuer.position.y = 20
-        pursuer.position.x += 500
+        pursuerMesh = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
+        pursuerMesh.scaling = new BABYLON.Vector3(20, 20, 20)
+        pursuerMesh.material = materialShip;
+        pursuerMesh.checkCollisions = true
+        pursuerMesh.position.y = 20
+        pursuerMesh.position.x += 500
+
+
+        /** Create vehicle **/
+        vehicle = new Vehicle(pursuerMesh)
+
+        vehicle.maxSpeed = paramsGUI[0].anim.toFixed(2)
+        vehicle.maxForce = paramsGUI[1].anim.toFixed(2)
+        vehicle.mass = paramsGUI[2].anim.toFixed(2)
+        vehicle.desiredSeparation = paramsGUI[3].anim.toFixed(2)
 
         /** Seek behaviour */
-        seekBehaviour = new SeekBehaviour(pursuer)
-        seekBehaviour.maxSpeed = paramsGUI[0].anim.toFixed(2)
-        seekBehaviour.maxForce = paramsGUI[1].anim.toFixed(2)
-        seekBehaviour.mass = paramsGUI[2].anim.toFixed(2)
-        seekBehaviour.desiredSeparation = paramsGUI[3].anim.toFixed(2)
+        var seekBehaviour = new SeekBehaviour(target)
 
-
+        seekBehaviours.push(seekBehaviour)
 
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
         dynamicTexture.hasAlpha = true;
-        dynamicTexture.drawText(seekBehaviour.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
+        dynamicTexture.drawText(vehicle.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
         var xChar = Utilities.createText(dynamicTexture, 70, scene);
-        xChar.position = seekBehaviour.position.clone()
+        xChar.position = vehicle.position.clone()
 
         namesPursuers.push(xChar);
 
         //Vector of seek behaviours
-        var decorMaxSpeed = new DecorVector(seekBehaviour.mesh.position, 100, scene)
-        var decorMaxForce = new DecorVector(seekBehaviour.mesh.position, 100, scene)
-        var decorVelocity = new DecorVector(seekBehaviour.mesh.position, 100, scene)
+        var decorMaxSpeed = new DecorVector(vehicle.mesh.position, 100, scene)
+        var decorMaxForce = new DecorVector(vehicle.mesh.position, 100, scene)
+        var decorVelocity = new DecorVector(vehicle.mesh.position, 100, scene)
         decorMaxSpeed.create(colorVectors[Object.keys(colorVectors)[0]], false)
         decorMaxForce.create(colorVectors[Object.keys(colorVectors)[1]], false)
         decorVelocity.create(colorVectors[Object.keys(colorVectors)[2]], false)
@@ -161,7 +170,7 @@ var createScene = function () {
         decorVectors["maxForce"].push(decorMaxForce)
         decorVectors["velocity"].push(decorVelocity)
 
-        pursuers.push(seekBehaviour)
+        pursuers.push(vehicle)
         pursuerCreated = true
         buttonSelect.isEnabled = true;
 
@@ -361,21 +370,24 @@ var createScene = function () {
     UiPanelTarget.addControl(checkboxMouse)
 
     buttonTarget.onPointerDownObservable.add(function () {
-        if (wanderTarget != undefined) {
-            wanderTarget.mesh.dispose()
-            wanderTarget = undefined
+        if (vehicleBehaviour != undefined) {
+            vehicleBehaviour.mesh.dispose()
+            vehicleBehaviour = undefined
         }
         var wTarget = BABYLON.Mesh.CreateCylinder("spaceship", 2, 0, 1, 6, 1, scene, false);
         wTarget.scaling = new BABYLON.Vector3(20, 20, 20)
         wTarget.material = materialShip;
         wTarget.checkCollisions = true
         wTarget.position.y = 0
-        wanderTarget = new WanderBehaviour(wTarget)
+
+        vehicleBehaviour = new Vehicle(wTarget)
+
+        wanderBehaviour = new WanderBehaviour()
 
         var circleDecor = new DecorCircle(BABYLON.Vector3.Zero(), 50, scene)
         circleDecor.create(new BABYLON.Color3(0, 1, 0), false)
         circlesWanders.push(circleDecor)
-        var decorDistance = new DecorVector(wanderTarget.position, 100, scene)
+        var decorDistance = new DecorVector(vehicleBehaviour.position, 100, scene)
         var decorRadius = new DecorVector(circlesWanders[circlesWanders.length - 1].meshVisualization.position, 100, scene)
         decorDistance.create(new BABYLON.Color3(1, 0, 0), false)
         decorRadius.create(new BABYLON.Color3(0, 0, 1), false)
@@ -384,10 +396,10 @@ var createScene = function () {
         decorVectorsWander["wanderRadius"].push(decorRadius)
 
 
-        wanderTarget.wanderDistance = paramsGUIWander[0].anim.toFixed(2)
-        wanderTarget.wanderRadius = paramsGUIWander[1].anim.toFixed(2)
-        wanderTarget.maxSpeed = paramsGUIWander[2].anim.toFixed(2)
-        wanderTarget.maxForce = paramsGUIWander[3].anim.toFixed(2)
+        wanderBehaviour.wanderDistance = paramsGUIWander[0].anim.toFixed(2)
+        wanderBehaviour.wanderRadius = paramsGUIWander[1].anim.toFixed(2)
+        vehicleBehaviour.maxSpeed = paramsGUIWander[2].anim.toFixed(2)
+        vehicleBehaviour.maxForce = paramsGUIWander[3].anim.toFixed(2)
 
 
         wanderTargeted = true;
@@ -416,7 +428,7 @@ var createScene = function () {
             advancedTexture.addControl(UiPanelWander);
 
 
-            GUI.displayChangeParametersEntity("40px", paramsGUIWander, wanderTarget, UiPanelWander)
+            GUI.displayChangeParametersEntity("40px", paramsGUIWander, wanderBehaviour, UiPanelWander)
             GUI.displayVectors(decorVectorsWander, checkboxGUI, UiPanelWander, colorVectors)
 
         }
@@ -442,10 +454,10 @@ var createScene = function () {
             camera.setTarget(BABYLON.Vector3.Zero());
             camera.attachControl(canvas, true);
             wanderTargeted = false;
-            if (wanderTarget != undefined) {
+            if (vehicleBehaviour != undefined) {
 
-                wanderTarget.mesh.dispose()
-                wanderTarget = undefined
+                vehicleBehaviour.mesh.dispose()
+                vehicleBehaviour = undefined
                 circlesWanders[0].meshVisualization.dispose()
                 circlesWanders = []
                 checkboxGUI.length -= 2
@@ -490,24 +502,23 @@ var createScene = function () {
 
         if (wanderTargeted) {
 
-            target.x = wanderTarget.position.x
-            target.z = wanderTarget.position.z
+            target.x = vehicleBehaviour.position.x
+            target.z = vehicleBehaviour.position.z
 
-            var directionRotation = (wanderTarget.velocity.clone()).normalize()
+            var directionRotation = (vehicleBehaviour.velocity.clone()).normalize()
             var dR = Math.atan2(directionRotation.z, -directionRotation.x)
 
-            wanderTarget.mesh.rotation.x = Math.PI / 2;
-            wanderTarget.mesh.rotation.z = Math.PI / 2;
-            wanderTarget.mesh.rotation.y = dR
+            vehicleBehaviour.mesh.rotation.x = Math.PI / 2;
+            vehicleBehaviour.mesh.rotation.z = Math.PI / 2;
+            vehicleBehaviour.mesh.rotation.y = dR
+            
+            vehicleBehaviour.applyBehaviour(wanderBehaviour)
+            vehicleBehaviour.update()
 
-
-            wanderTarget.run(target)
-            wanderTarget.update()
-
-            decorVectorsWander["wanderDistance"][0].update(wanderTarget.wanderCenter)
+            decorVectorsWander["wanderDistance"][0].update(wanderBehaviour.wanderCenter)
 
             // Update the visualization of circles 
-            circlesWanders[0].update(wanderTarget)
+            circlesWanders[0].update(wanderBehaviour,vehicleBehaviour.position)
             if (checkboxGUI[4].isChecked) {
                 circlesWanders[0].meshVisualization.isVisible = true;
             } else {
@@ -517,7 +528,7 @@ var createScene = function () {
 
             decorVectorsWander["wanderRadius"][0].origin = circlesWanders[0].meshVisualization.position.clone()
             decorVectorsWander["wanderRadius"][0].origin.y += 5
-            decorVectorsWander["wanderRadius"][0].update(wanderTarget.displacement)
+            decorVectorsWander["wanderRadius"][0].update(wanderBehaviour.displacement)
 
 
 
@@ -538,7 +549,7 @@ var createScene = function () {
                 }
                 pursuers[i].rotate()
                 pursuers[i].separate(pursuers)
-                pursuers[i].run(target)
+                pursuers[i].applyBehaviour(seekBehaviours[i])
                 pursuers[i].update()
 
 

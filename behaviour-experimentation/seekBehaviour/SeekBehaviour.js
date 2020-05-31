@@ -2,40 +2,34 @@ import Behaviour from "../Behaviour.js";
 
 export default class SeekBehaviour extends Behaviour {
 
-    constructor(mesh) {
-        super(mesh)
-        this.desired = new BABYLON.Vector3(0, 0, 0)
-        this.velocity = new BABYLON.Vector3(-0.2, 0, 0)
-        this.steer=new BABYLON.Vector3(0,0,0)
-        this.maxForce = 0
+    constructor(target) {
+        super();
+        this.target= target;
     }
 
+    apply(vehicle) {
+        var x = vehicle.mesh.position.x;
+        var z = vehicle.mesh.position.z;
+        vehicle.desired = this.target.subtract(new BABYLON.Vector3(x, vehicle.position.y, z));
 
-    run(target) {
-        var x = this.position.x;
-        var z = this.position.z;
-        this.desired = target.subtract(new BABYLON.Vector3(x, this.position.y, z));
 
         // Scale to maximum speed
-        this.desired.normalize()
-        var desiredScaled = this.desired.scale(this.maxSpeed)
-        this.desired = desiredScaled
+        vehicle.desired.normalize()
+        var desiredScaled = vehicle.desired.scale(vehicle.maxSpeed)
+        vehicle.desired = desiredScaled
 
         // Steering = Desired minus velocity
-        this.steer = this.desired.subtract(this.velocity);
+        vehicle.steer = vehicle.desired.subtract(vehicle.velocity);
 
         // Limit the steer vector to maxForce
-        const lengthSteer = this.steer.length();
-        let tempSteer = this.steer.clone();
-        const scaledToMaxForce = tempSteer.normalize().scale(this.maxForce);
+        const lengthSteer = vehicle.steer.length();
+        let tempSteer = vehicle.steer.clone();
+        const scaledToMaxForce = tempSteer.normalize().scale(vehicle.maxForce);
 
-        if (!(lengthSteer < this.maxForce)) {
-            this.steer = scaledToMaxForce
+        if (!(lengthSteer < vehicle.maxForce)) {
+            vehicle.steer = scaledToMaxForce
         }
-        super.applyForce(this.steer)
+        vehicle.applyForce(vehicle.steer)
     }
 
-    update() {
-        super.update();
-    }
 }

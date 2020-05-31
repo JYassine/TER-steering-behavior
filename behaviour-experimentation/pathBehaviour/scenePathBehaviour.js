@@ -1,5 +1,5 @@
 import PathBehaviour from "./PathBehaviour.js";
-import Behaviour from "../Behaviour.js";
+import Vehicle from "../Vehicle.js";
 import GUI from "../GUI/GUI.js"
 import Utilities from "../Utilities.js"
 import DecorVector from "../GUI/DecorVector.js"
@@ -16,7 +16,6 @@ var entities = []
 var UiPanelSelection;
 var advancedTexture;
 var nameEntities = []
-var ts = []
 var mapRoads=[];
 var direction;
 var editMap;
@@ -24,7 +23,8 @@ var UiPanel;
 var UiPanelEditMap;
 var targets = []
 var mouseTarget;
-var imageStreet
+var imageStreet;
+var pathBehaviours=[];
 var suppressImage = false;
 var imageStreetPosed = false;
 var colorVectors = {
@@ -89,7 +89,7 @@ var createScene = function () {
     advancedTexture.addControl(UiPanel);
 
 
-    GUI.displayChangeParametersEntities("70px", paramsGUI, ts, UiPanel)
+    GUI.displayChangeParametersEntities("70px", paramsGUI, entities, UiPanel)
     GUI.displayVectors(decorVectors, checkboxGUI, UiPanel, colorVectors)
 
 
@@ -107,7 +107,6 @@ var createScene = function () {
     buttonStart.onPointerDownObservable.add(function () {
         var target;
         var entity;
-        var pathBehaviourEntity;
 
         entity = BABYLON.Mesh.CreateCylinder("entity", 2, 0, 1, 6, 1, scene, false);
         entity.scaling = new BABYLON.Vector3(20, 20, 20)
@@ -117,36 +116,39 @@ var createScene = function () {
         entity.position.z = editMap.map[0].road.position.z
         entity.position.x = editMap.map[0].road.position.x-100
 
+        var vehicle = new Vehicle(entity)
+
         target = BABYLON.Mesh.CreateCylinder("target", 2, 0, 1, 6, 1, scene, false);
         target.scaling = new BABYLON.Vector3(7, 7, 7)
         target.material = materialShip;
         target.checkCollisions = true
         target.position.y = 1
 
-        target = new Behaviour(target)
-        pathBehaviourEntity = new PathBehaviour(entity)
-        pathBehaviourEntity.radiusPath = 40
+        var vehicleTarget = new Vehicle(target)
 
-        pathBehaviourEntity.t.maxSpeed = paramsGUI[0].anim.toFixed(2)
-        pathBehaviourEntity.t.maxForce = paramsGUI[1].anim.toFixed(2)
-        pathBehaviourEntity.t.mass = paramsGUI[2].anim.toFixed(2)
-        pathBehaviourEntity.t.desiredSeparation = paramsGUI[3].anim.toFixed(2)
+        var pathBehaviour = new PathBehaviour(editMap.concMap,vehicleTarget)
+        pathBehaviour.radiusPath = 40
+
+        vehicle.maxSpeed = paramsGUI[0].anim.toFixed(2)
+        vehicle.maxForce = paramsGUI[1].anim.toFixed(2)
+        vehicle.mass = paramsGUI[2].anim.toFixed(2)
+        vehicle.desiredSeparation = paramsGUI[3].anim.toFixed(2)
 
 
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
         dynamicTexture.hasAlpha = true;
-        dynamicTexture.drawText(pathBehaviourEntity.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
+        dynamicTexture.drawText(vehicle.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
 
         var xChar = Utilities.createText(dynamicTexture, 70, scene);
-        xChar.position = pathBehaviourEntity.position.clone()
+        xChar.position = vehicle.position.clone()
 
         nameEntities.push(xChar);
 
 
         //Vector of seek behaviours
-        var decorMaxSpeed = new DecorVector(pathBehaviourEntity.mesh.position, 100, scene)
-        var decorMaxForce = new DecorVector(pathBehaviourEntity.mesh.position, 100, scene)
-        var decorVelocity = new DecorVector(pathBehaviourEntity.mesh.position, 100, scene)
+        var decorMaxSpeed = new DecorVector(vehicle.mesh.position, 100, scene)
+        var decorMaxForce = new DecorVector(vehicle.mesh.position, 100, scene)
+        var decorVelocity = new DecorVector(vehicle.mesh.position, 100, scene)
         decorMaxSpeed.create(colorVectors[Object.keys(colorVectors)[0]], false)
         decorMaxForce.create(colorVectors[Object.keys(colorVectors)[1]], false)
         decorVelocity.create(colorVectors[Object.keys(colorVectors)[2]], false)
@@ -155,9 +157,9 @@ var createScene = function () {
         decorVectors["velocity"].push(decorVelocity)
 
 
-        targets.push(target)
-        entities.push(pathBehaviourEntity)
-        ts.push(pathBehaviourEntity.t)
+        targets.push(vehicleTarget)
+        entities.push(vehicle)
+        pathBehaviours.push(pathBehaviour)
 
         entitiesCreated = true
         buttonSelect.isEnabled = true;
@@ -472,8 +474,6 @@ var createScene = function () {
 
     });
 
-    var paths = []
-    //paths = createPath(scene)
 
     scene.registerAfterRender(function () {
 
@@ -486,16 +486,16 @@ var createScene = function () {
             for (let i = 0; i < entities.length; i++) {
                 // Update entities
 
-                entities[i].t.position.y = 1
-                entities[i].t.rotate()
-                entities[i].t.separate(entities)
-                entities[i].run(mapRoads)
-                entities[i].t.update()
+                entities[i].position.y = 1
+                entities[i].rotate()
+                entities[i].separate(entities)
+                entities[i].applyBehaviour(pathBehaviours[i])
+                entities[i].update()
 
                 // Update targets
                 var directionRotation = (targets[i].velocity.clone()).normalize()
                 directionRotation = Math.atan2(directionRotation.z, -directionRotation.x)
-                targets[i].mesh.position = entities[i].targetP.clone()
+                targets[i].mesh.position = pathBehaviours[i].targetP.clone()
                 targets[i].update()
 
                 //Update name position
@@ -503,9 +503,9 @@ var createScene = function () {
                 nameEntities[i].rotation.y = directionRotation
 
                 //Update the visualization of vectors
-                decorVectors["maxSpeed"][i].update(entities[i].t.desired)
-                decorVectors["maxForce"][i].update(entities[i].t.steer)
-                decorVectors["velocity"][i].update(entities[i].t.velocity)
+                decorVectors["maxSpeed"][i].update(entities[i].desired)
+                decorVectors["maxForce"][i].update(entities[i].steer)
+                decorVectors["velocity"][i].update(entities[i].velocity)
             }
         }
 

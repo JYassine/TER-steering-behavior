@@ -3,6 +3,7 @@ import DecorVector from "../GUI/DecorVector.js";
 import DecorCircle from "../GUI/DecorCircle.js";
 import GUI from "../GUI/GUI.js";
 import Utilities from "../Utilities.js";
+import Vehicle from "../Vehicle.js";
 
 var canvas = document.getElementById("renderCanvas");
 
@@ -16,6 +17,7 @@ var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "blue": new BABYLON.Color3(0, 0, 1)
 }
+var wanderBehaviours = [];
 var checkboxGUI = []
 var entities = []
 var nameEntities = []
@@ -63,7 +65,7 @@ var createScene = function () {
     UiPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     advancedTexture.addControl(UiPanel);
 
-    GUI.displayChangeParametersEntities("70px", paramsGUI, entities, UiPanel)
+    GUI.displayChangeParametersEntities("70px", paramsGUI, wanderBehaviours, UiPanel)
 
     /** ADD BUTTON TO CREATE NEW entity */
 
@@ -81,14 +83,15 @@ var createScene = function () {
         entity.checkCollisions = true
         entity.position.y = 20
 
-
+        var vehicle = new Vehicle(entity)
         
+        var wanderBehaviour = new WanderBehaviour()
+        wanderBehaviours.push(wanderBehaviour)
         var circle = new DecorCircle(BABYLON.Vector3.Zero(),50,scene)
         circle.create(new BABYLON.Color3(0,1,0),false)
         circlesWanders.push(circle)
         /** Seek behaviour */
-        var wanderBehaviour = new WanderBehaviour(entity)
-        var decorDistance = new DecorVector(wanderBehaviour.position,100,scene)
+        var decorDistance = new DecorVector(vehicle.position,100,scene)
         var decorRadius = new DecorVector(circlesWanders[circlesWanders.length - 1].meshVisualization.position,100,scene)
         decorDistance.create(new BABYLON.Color3(1, 0, 0), false)
         decorRadius.create(new BABYLON.Color3(0, 0, 1), false)
@@ -102,10 +105,10 @@ var createScene = function () {
         dynamicTexture.hasAlpha = true;
         dynamicTexture.drawText(wanderBehaviour.name, 0, 40, "bold 36px Arial", "red", "transparent", true);
         var xChar = Utilities.createText(dynamicTexture, 70, scene);
-        xChar.position = wanderBehaviour.position.clone()
+        xChar.position = vehicle.position.clone()
         nameEntities.push(xChar);
 
-        entities.push(wanderBehaviour)
+        entities.push(vehicle)
         entitiesCreated = true
         checkboxGUI.forEach(child => {
             child.isEnabled = true
@@ -125,7 +128,7 @@ var createScene = function () {
     // BUTTON STOP
     buttonStop.onPointerDownObservable.add(function () {
         entities.forEach(p => {
-            p.getMesh().dispose()
+            p.mesh.dispose()
         });
         for (var decorVector in decorVectors) {
             decorVectors[decorVector].forEach(dc => {
@@ -195,7 +198,9 @@ var createScene = function () {
     // BUTTON SELECT
     buttonSelect.onPointerDownObservable.add(function () {
 
+        var i=-1;
         entities.forEach(entity => {
+            i++;
             entity.mesh.actionManager = new BABYLON.ActionManager(scene);
             entity.mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, function (ev) {
 
@@ -227,7 +232,8 @@ var createScene = function () {
                 UiPanelSelection.addControl(inputName);
 
                 var paramsGUISelection = [...paramsGUI]
-                GUI.displayChangeParametersEntity("30px", paramsGUISelection, entity, UiPanelSelection)
+                GUI.displayChangeParametersEntity("30px", paramsGUISelection, wanderBehaviours[i], UiPanelSelection)
+                
 
 
                 var buttonDone = BABYLON.GUI.Button.CreateSimpleButton("buttonDone", "DONE");
@@ -292,18 +298,18 @@ var createScene = function () {
             for (let i = 0; i < entities.length; i++) {
                 entities[i].rotate()
                 entities[i].separate(entities)
-                entities[i].run(target)
+                entities[i].applyBehaviour(wanderBehaviours[i])
                 entities[i].update()
 
                 //Update the visualization of vectors
-                decorVectors["wanderDistance"][i].update(entities[i].wanderCenter)
+                decorVectors["wanderDistance"][i].update(wanderBehaviours[i].wanderCenter)
                 decorVectors["wanderRadius"][i].origin = circlesWanders[i].meshVisualization.position.clone()
                 decorVectors["wanderRadius"][i].origin.y += 5
-                decorVectors["wanderRadius"][i].update(entities[i].displacement)
+                decorVectors["wanderRadius"][i].update(wanderBehaviours[i].displacement)
 
                 // Update the visualization of circles 
                 
-                circlesWanders[i].update(entities[i])
+                circlesWanders[i].update(wanderBehaviours[i],entities[i].position)
                 if (checkboxGUI[1].isChecked) {
                     circlesWanders[i].meshVisualization.isVisible = true;
                 } else {

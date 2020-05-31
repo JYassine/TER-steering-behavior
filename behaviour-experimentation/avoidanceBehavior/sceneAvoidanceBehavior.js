@@ -3,6 +3,7 @@ import SeekBehaviour from "../seekBehaviour/SeekBehaviour.js";
 import DecorVector from "../GUI/DecorVector.js";
 import Utilities from "../Utilities.js"
 import GUI from "../GUI/GUI.js"
+import Vehicle from "../Vehicle.js";
 
 var canvas = document.getElementById("renderCanvas");
 
@@ -17,6 +18,7 @@ var advancedTexture;
 var nameEntities = []
 var UiPanel;
 var targets = []
+var avoidanceBehaviors=[];
 var mouseTarget;
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
@@ -102,16 +104,17 @@ var createScene = function () {
         entity.position.y = 20
         entity.position.x += 500
 
+        
+        var avoidanceBehavior = new AvoidanceBehavior(listObstacles)
+        var vehicle = new Vehicle(entity)
         /** Avoidance behavior */
 
-
-        var seekBehaviour = new SeekBehaviour(entity)
         
-        seekBehaviour.maxSpeed = paramsGUI[0].anim.toFixed(2)
-        seekBehaviour.maxForce = paramsGUI[1].anim.toFixed(2)
-        seekBehaviour.mass = paramsGUI[2].anim.toFixed(2)
-        seekBehaviour.desiredSeparation = paramsGUI[3].anim.toFixed(2)
-        seekBehaviour.maxSeeAhead= paramsGUI[4].anim.toFixed(2)
+        vehicle.maxSpeed = paramsGUI[0].anim.toFixed(2)
+        vehicle.maxForce = paramsGUI[1].anim.toFixed(2)
+        vehicle.mass = paramsGUI[2].anim.toFixed(2)
+        vehicle.desiredSeparation = paramsGUI[3].anim.toFixed(2)
+        avoidanceBehavior.maxSeeAhead= paramsGUI[4].anim.toFixed(2)
 
 
         var dynamicTexture = new BABYLON.DynamicTexture("DynamicTexture", 250, scene, true);
@@ -126,11 +129,11 @@ var createScene = function () {
         
 
         //Vector of seek behaviours
-        var decorMaxSpeed = new DecorVector(seekBehaviour.mesh.position, 100, scene)
-        var decorMaxForce = new DecorVector(seekBehaviour.mesh.position, 100, scene)
-        var decorVelocity = new DecorVector(seekBehaviour.mesh.position, 100, scene)
+        var decorMaxSpeed = new DecorVector(vehicle.mesh.position, 100, scene)
+        var decorMaxForce = new DecorVector(vehicle.mesh.position, 100, scene)
+        var decorVelocity = new DecorVector(vehicle.mesh.position, 100, scene)
         
-        var decorAvoidance = new DecorVector(seekBehaviour.mesh.position, 100, scene)
+        var decorAvoidance = new DecorVector(vehicle.mesh.position, 100, scene)
         decorMaxSpeed.create(colorVectors[Object.keys(colorVectors)[0]], false)
         decorMaxForce.create(colorVectors[Object.keys(colorVectors)[1]], false)
         decorVelocity.create(colorVectors[Object.keys(colorVectors)[2]], false)
@@ -141,7 +144,8 @@ var createScene = function () {
         decorVectors["velocity"].push(decorVelocity)
         decorVectors["avoidanceForce"].push(decorAvoidance)
 
-        entities.push(seekBehaviour)
+        entities.push(vehicle)
+        avoidanceBehaviors.push(avoidanceBehavior)
 
         entitiesCreated = true
         buttonSelect.isEnabled = true;
@@ -198,6 +202,7 @@ var createScene = function () {
                 inputName.verticalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
                 UiPanelSelection.addControl(inputName);
 
+
                 var paramsGUISelection = [...paramsGUI]
 
                 GUI.displayChangeParametersEntity("30px", paramsGUISelection, entity, UiPanelSelection)
@@ -250,7 +255,7 @@ var createScene = function () {
 
 
         for (let i = 0; i < entities.length; i++) {
-            entities[i].getMesh().dispose()
+            entities[i].mesh.dispose()
             nameEntities[i].dispose();
         }
         for (var decorVector in decorVectors) {
@@ -333,8 +338,8 @@ var createScene = function () {
 
                 entities[i].separate(entities)
                 entities[i].rotate()
-                entities[i].run(mouseTarget)
-                entities[i].avoid(listObstacles)
+                entities[i].applyBehaviour(new SeekBehaviour(mouseTarget))
+                entities[i].applyBehaviour(avoidanceBehaviors[i])
                 entities[i].update()
                 
                 
@@ -349,7 +354,7 @@ var createScene = function () {
                 decorVectors["maxSpeed"][i].update(entities[i].desired)
                 decorVectors["maxForce"][i].update(entities[i].steer)
                 decorVectors["velocity"][i].update(entities[i].velocity)
-                decorVectors["avoidanceForce"][i].update(entities[i].avoidanceForce)
+                decorVectors["avoidanceForce"][i].update(avoidanceBehaviors[i].avoidanceForce)
 
             }
 
