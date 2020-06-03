@@ -4,7 +4,7 @@ export default class Vehicle {
         this.mesh = mesh
         this.target = undefined
         this.position = mesh.position
-        this.velocity = new BABYLON.Vector3(2, 0, 0)
+        this.velocity = new BABYLON.Vector3(0, 0, 0)
         this.acceleration = new BABYLON.Vector3(0, 0, 0)
         this.steer=new BABYLON.Vector3(0,0,0)
         this.maxSpeed = 2
@@ -16,39 +16,11 @@ export default class Vehicle {
 
     }
 
+    applyDisplacement(displacement){
+        displacement.apply(this)
+    }
     applyBehaviour(behaviour) {
         behaviour.apply(this);
-    }
-
-
-
-    avoid(listObstacles) {
-    
-        var dynamic_length=0;
-        dynamic_length = this.maxSeeAhead + (this.velocity.length() / this.maxSpeed) * this.maxSeeAhead;
-        dynamic_length = parseInt(dynamic_length)
-        this.ahead = this.position.add((this.velocity.clone().normalize().scale(dynamic_length)));
-        this.ahead2 = this.position.add((this.velocity).clone().normalize()).scale(dynamic_length*0.5);
-        var mostThreatening = this.findObstacle(listObstacles);
-
-        if (mostThreatening !== undefined) {
-            
-            this.avoidanceForce  = this.ahead.subtract(mostThreatening.position).normalize().scale(this.maxAvoidForce*this.maxSpeed);
-            this.avoidanceForce.y=0;
-            
-            this.applyForce(this.avoidanceForce)
-       
-        } else {
-            listObstacles.forEach(o => {
-                var material = o.material.clone()
-                material.diffuseColor = new BABYLON.Color3(1, 0, 0)
-                o.material = material
-            })
-
-            this.avoidanceForce = new BABYLON.Vector3.Zero()
-        }
-
-
     }
 
     separate(vehicles) {
@@ -93,13 +65,6 @@ export default class Vehicle {
         }
     }
 
-  
-
-    
-   
-
-
-
     rotate(){
         
         var directionRotation = (this.velocity.clone()).normalize()
@@ -109,6 +74,7 @@ export default class Vehicle {
         this.mesh.rotation.z = Math.PI / 2;
         this.mesh.rotation.y = dR
     }
+
 
     update() {
 
