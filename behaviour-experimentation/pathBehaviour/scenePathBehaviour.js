@@ -183,9 +183,9 @@ var createScene = function () {
     buttonStop.onPointerDownObservable.add(function () {
 
         for (let i = 0; i < entities.length; i++) {
-            entities[i].getMesh().dispose();
+            entities[i].mesh.dispose();
             nameEntities[i].dispose();
-            targets[i].getMesh().dispose();
+            targets[i].mesh.dispose();
 
         }
 
@@ -419,9 +419,9 @@ var createScene = function () {
         buttonStop.isEnabled = false;
         buttonStart.isEnabled = false;
         for (let i = 0; i < entities.length; i++) {
-            entities[i].getMesh().dispose();
+            entities[i].mesh.dispose();
             nameEntities[i].dispose();
-            targets[i].getMesh().dispose();
+            targets[i].mesh.dispose();
 
         }
 

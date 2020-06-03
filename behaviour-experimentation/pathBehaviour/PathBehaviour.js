@@ -11,7 +11,7 @@ export default class PathBehaviour extends Behaviour {
         this.targetSeekBehaviour = target
         this.targetSeekBehaviour.maxSpeed = 5
         this.targetSeekBehaviour.maxForce = 10
-        this.targetSeekBehaviour.mass = 50
+        this.targetSeekBehaviour.mass = 20
         this.targetP = undefined;
         this.predictpos = undefined;
         this.normal = undefined;
