@@ -14,14 +14,9 @@ export default class Road {
 
 
     createRoad(scene) {
-
-
-        
         var myMaterial = new BABYLON.StandardMaterial("road", scene);
         var roadmaterialpt = new BABYLON.RoadProceduralTexture("customtext", 512, scene);
         myMaterial.diffuseTexture = roadmaterialpt;
-        //var myMaterial = new BABYLON.StandardMaterial("myMaterial", scene);
-        //myMaterial.diffuseTexture = new BABYLON.Texture("../resources/image/road_image.png", scene);
         var road = BABYLON.MeshBuilder.CreateBox("myBox", { height: this.height, width: this.height, depth: 10 }, scene);
 
         switch (this.direction) {

@@ -5,6 +5,7 @@ import Utilities from "../Utilities.js"
 import DecorVector from "../GUI/DecorVector.js"
 import EditMap from "./EditMap.js"
 import Direction from "./Direction.js";
+import Road from "./Road.js";
 var canvas = document.getElementById("renderCanvas");
 
 var engine = null;
@@ -25,8 +26,9 @@ var targets = []
 var mouseTarget;
 var imageStreet;
 var pathBehaviours=[];
-var suppressImage = false;
 var imageStreetPosed = false;
+var heightMap=200;
+var suppressImage;
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "yellow": new BABYLON.Color3(1, 1, 0),
@@ -46,10 +48,13 @@ var paramsGUI = [
 ]
 
 
+
+
 var createDefaultEngine = function () { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true }); };
 var createScene = function () {
 
 
+    
 
     var scene = new BABYLON.Scene(engine);
 
@@ -414,8 +419,13 @@ var createScene = function () {
 
     
     buttonSaveMap.onPointerDownObservable.add(function () {
-        console.log(editMap.concMap)
-        Utilities.saveData(editMap.concMap, "mapRace.json");
+        console.log(editMap.map)
+
+        var map =[]
+        editMap.map.forEach(road=>{
+            map.push({"direction":road.direction,"height":road.height,"pathPoint":road.pathPoint,"position":road.position})
+        });
+        Utilities.saveData(map, "mapRace.json");
 
     });
 
