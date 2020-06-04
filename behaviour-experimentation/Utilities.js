@@ -25,10 +25,33 @@ var Utilities = {
         dynamicTexture.hasAlpha = true;
         dynamicTexture.drawText(text, 0, 40, "bold 36px Arial", "red", "transparent", true);
         mesh.material.diffuseTexture = dynamicTexture;
+    },
+
+     saveData(data,fileName){
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        var json = JSON.stringify(data),
+         blob = new Blob([json], {type: "octet/stream"}),
+        url = window.URL.createObjectURL(blob);
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    },
+
+     readTextFile(file, callback) {
+        var rawFile = new XMLHttpRequest();
+        rawFile.overrideMimeType("application/json");
+        rawFile.open("GET", file, true);
+        rawFile.onreadystatechange = function() {
+            if (rawFile.readyState === 4 && rawFile.status == "200") {
+                callback(rawFile.responseText);
+            }
+        }
+        rawFile.send(null);
     }
-
-
-
+    
 };
 
 export default Utilities;

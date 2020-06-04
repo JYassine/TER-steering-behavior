@@ -405,6 +405,20 @@ var createScene = function () {
     buttonSuppress.isVisible = false;
     UiPanelEditMap.addControl(buttonSuppress)
 
+    
+    
+    var buttonSaveMap = GUI.createButton("Save map", "10px", "100px", "100px", "white", "purple")
+    buttonSaveMap.isVisible = false;
+    
+    UiPanelEditMap.addControl(buttonSaveMap)
+
+    
+    buttonSaveMap.onPointerDownObservable.add(function () {
+        console.log(editMap.concMap)
+        Utilities.saveData(editMap.concMap, "mapRace.json");
+
+    });
+
 
 
 
@@ -418,6 +432,7 @@ var createScene = function () {
         buttonSelect.isEnabled = false;
         buttonStop.isEnabled = false;
         buttonStart.isEnabled = false;
+        buttonSaveMap.isVisible=false;
         for (let i = 0; i < entities.length; i++) {
             entities[i].mesh.dispose();
             nameEntities[i].dispose();
@@ -455,6 +470,7 @@ var createScene = function () {
         buttonSelect.isEnabled = true;
         buttonStop.isEnabled = true;
         buttonStart.isEnabled = true;
+      
 
        editMap.map.forEach(road=>{
             road.pathPoint.forEach(p=>{
@@ -463,6 +479,14 @@ var createScene = function () {
                 mapRoads.push({direction,path})
             })
         })
+
+        if(editMap.map.length>0){
+            buttonSelect.isEnabled = true;
+            buttonStop.isEnabled = true;
+            
+            buttonSaveMap.isVisible=true;
+            
+        }
     
         editMap.delete()
 

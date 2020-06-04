@@ -3,8 +3,6 @@ import Vehicle from "../Vehicle.js";
 import GUI from "../GUI/GUI.js"
 import Utilities from "../Utilities.js"
 import DecorVector from "../GUI/DecorVector.js"
-import EditMap from "../pathBehaviour/EditMap.js"
-import Direction from "../pathBehaviour/Direction.js";
 var canvas = document.getElementById("renderCanvas");
 
 var engine = null;
@@ -16,20 +14,14 @@ var entities = []
 var UiPanelSelection;
 var advancedTexture;
 var nameEntities = []
-var mapRoads = [];
-var direction;
 var editMap;
 var UiPanel;
 var UiPanelEditMap;
 var targets = []
-var mouseTarget;
-var imageStreet;
 var pathBehaviours = [];
 var vehiclePlayer=undefined;
 var decelerate;
 var raceStarted=false;
-var suppressImage;
-var imageStreetPosed = false;
 var colorVectors = {
     "red": new BABYLON.Color3(1, 0, 0),
     "yellow": new BABYLON.Color3(1, 1, 0),
@@ -78,11 +70,6 @@ var createScene = function () {
     advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
     UiPanel = new BABYLON.GUI.StackPanel();
 
-    window.addEventListener("mousemove", function () {
-        var pickResult = scene.pick(scene.pointerX, scene.pointerY);
-        mouseTarget = pickResult.pickedPoint
-
-    });
 
 
     UiPanel.width = "220px";
@@ -361,61 +348,9 @@ var createScene = function () {
     buttonStop.isEnabled = false;
     buttonStart.isEnabled = false;
 
-    var buttonStreetBackWard = GUI.createButton("Street back", "10px", "100px", "100px", "white", "black")
-    buttonStreetBackWard.isVisible = false;
-    buttonStreetBackWard.isPointerBlocker = true;
-    UiPanelEditMap.addControl(buttonStreetBackWard)
 
-    buttonStreetBackWard.onPointerDownObservable.add(function () {
-        direction = Direction.BACK;
-        editMap.handlePointerClick(editMap.map, direction, scene, editMap.concMap)
-
-    });
-
-
-
-    var buttonStreetForward = GUI.createButton("Street Forward", "10px", "100px", "100px", "white", "black")
-    buttonStreetForward.isVisible = false;
-    buttonStreetForward.isPointerBlocker = true;
-    UiPanelEditMap.addControl(buttonStreetForward)
-
-    buttonStreetForward.onPointerDownObservable.add(function () {
-        direction = Direction.FORWARD
-
-        editMap.handlePointerClick(editMap.map, direction, scene, editMap.concMap)
-
-    });
-
-    var buttonStreetLeft = GUI.createButton("Street Left", "10px", "100px", "100px", "white", "black")
-
-    buttonStreetLeft.isPointerBlocker = true;
-    buttonStreetLeft.isVisible = false;
-    UiPanelEditMap.addControl(buttonStreetLeft)
-
-    buttonStreetLeft.onPointerDownObservable.add(function () {
-        direction = Direction.LEFT;
-
-        editMap.handlePointerClick(editMap.map, direction, scene, editMap.concMap)
-
-    });
-
-    var buttonStreetRight = GUI.createButton("Street Right", "10px", "100px", "100px", "white", "black")
-    buttonStreetRight.isVisible = false;
-
-    buttonStreetRight.isPointerBlocker = true;
-    UiPanelEditMap.addControl(buttonStreetRight)
-
-    buttonStreetRight.onPointerDownObservable.add(function () {
-        direction = Direction.RIGHT;
-
-        editMap.handlePointerClick(editMap.map, direction, scene, editMap.concMap)
-
-    });
-
-
-
-    var buttonEdit = GUI.createButton("Edit map", "10px", "100px", "100px", "white", "green")
-    UiPanelEditMap.addControl(buttonEdit)
+    var buttonLoad = GUI.createButton("Load Map", "10px", "100px", "100px", "white", "green")
+    UiPanelEditMap.addControl(buttonLoad)
 
     UiPanelEditMap.addControl(buttonStartRace)
     UiPanelEditMap.addControl(buttonStopRace)
@@ -438,7 +373,8 @@ var createScene = function () {
 
         entity = BABYLON.Mesh.CreateCylinder("entity", 2, 0, 1, 6, 1, scene, false);
         entity.scaling = new BABYLON.Vector3(20, 20, 20)
-        entity.material = materialShip;
+        entity.material = materialShip.clone();
+        entity.material.diffuseColor = new BABYLON.Color3(0,1,0)
         entity.checkCollisions = true
         entity.position.z = editMap.map[0].road.position.z
         entity.position.x = editMap.map[0].road.position.x - 100
@@ -510,106 +446,23 @@ var createScene = function () {
 
     });
 
-    var buttonQuitEdit = GUI.createButton("Quit edit map", "10px", "100px", "100px", "white", "orange")
-    buttonQuitEdit.isVisible = false;
-    UiPanelEditMap.addControl(buttonQuitEdit)
 
-
-    var buttonSuppress = GUI.createButton("Suppress street", "10px", "100px", "100px", "white", "red")
-    buttonSuppress.isVisible = false;
-    UiPanelEditMap.addControl(buttonSuppress)
-
-
-
-
-    buttonEdit.onPointerDownObservable.add(function () {
-        buttonQuitEdit.isVisible = true;
-        buttonSuppress.isVisible = true;
-        buttonStreetBackWard.isVisible = true;
-        buttonStreetForward.isVisible = true;
-        buttonStreetLeft.isVisible = true;
-        buttonStreetRight.isVisible = true;
-        buttonSelect.isEnabled = false;
-        buttonStop.isEnabled = false;
-        buttonStart.isEnabled = false;
-        buttonStartRace.isVisible=false;
-        buttonStopRace.isVisible=false;
-        raceStarted=false;
-        
-        for (let i = 0; i < entities.length; i++) {
-            entities[i].mesh.dispose();
-            nameEntities[i].dispose();
-            targets[i].mesh.dispose();
-            vehiclePlayer.mesh.dispose()
-        
-
-        }
-
-
-        if (editMap === undefined) {
-            editMap = new EditMap(3000, 3000, 200, scene)
-            editMap.createEditMap(gridMaterial)
-
-
-
-        } else {
-            editMap.edit.forEach(tileMap => {
-                tileMap.box.isVisible = true;
-            })
-        }
+    buttonLoad.onPointerDownObservable.add(function () {
 
         
-        
+        Utilities.readTextFile("./mapRace.json", function(text){
+            var data = JSON.parse(text);
+            console.log(data);
+        });
+
         camera.position = new BABYLON.Vector3(0,3000,60)
         camera.setTarget(new BABYLON.Vector3(0,0,0));
-        editMap.handlePointerHover();
 
     });
 
-
-    buttonQuitEdit.onPointerDownObservable.add(function () {
-        buttonQuitEdit.isVisible = false;
-        buttonSuppress.isVisible = false;
-
-        buttonStreetBackWard.isVisible = false;
-        buttonStreetForward.isVisible = false;
-        buttonStreetLeft.isVisible = false;
-        buttonStreetRight.isVisible = false;
-        buttonStartRace.isVisible=true;
-        buttonStopRace.isVisible=true;
-        editMap.map.forEach(road => {
-            road.pathPoint.forEach(p => {
-                var direction = road.direction
-                var path = p
-                mapRoads.push({ direction, path })
-            })
-        })
-
-        if(editMap.map.length>0){
-            buttonSelect.isEnabled = true;
-            buttonStop.isEnabled = true;
-            buttonStart.isEnabled = true;
-            
-        }
-
-        
-
-        editMap.delete()
-
-    })
-
-    buttonSuppress.onPointerDownObservable.add(function () {
-        suppressImage = true
-        editMap.handleSuppressClick(editMap, editMap.edit, editMap.map, editMap.scene, editMap.concMap)
-
-    });
 
 
     scene.registerAfterRender(function () {
-
-        if (imageStreet != undefined && imageStreetPosed === false && mouseTarget != undefined) {
-            imageStreet[0].position = mouseTarget
-        }
 
         if(vehiclePlayer!==undefined){
 
