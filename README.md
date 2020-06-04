@@ -1,6 +1,6 @@
 # TER-steering-behavior
 
-TER PLANNING : <br/>
+## TER PLANNING : <br/>
 
 Jusqu'à la rentrée : (01/03) <br/>
 -> Testé la librairie Yuka et apprendre un ou deux comportements et faire un mini-demonstrateur <br/>
@@ -24,16 +24,7 @@ Jusqu'à la rentrée : (01/03) <br/>
 
 gestion de projet : la gestion de projet se fera maintenant sur le git
 
-#TEST SEEK BEHAVIOUR : 
-
-Lien test : https://538663.playcode.io
-Lien de test avec code modifiable : https://playcode.io/538663
-
-#TEST WANDER BEHAVIOUR : 
-
-Lien de test : https://526977.playcode.io
-Lien de test avec code modifiable  : https://playcode.io/526977
-
+## Lien rapport (en cours d'écriture) : https://jyassine.github.io/
 
 
 
