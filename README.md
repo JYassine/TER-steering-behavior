@@ -1,31 +1,24 @@
 # TER-steering-behavior
+<p align="center">
+  <img src="https://forthebadge.com/images/badges/made-with-javascript.svg" width=250px">
+</p>
 
-## TER PLANNING : <br/>
+## Contexte :
 
-Jusqu'à la rentrée : (01/03) <br/>
--> Testé la librairie Yuka et apprendre un ou deux comportements et faire un mini-demonstrateur <br/>
--> Réunion avec l'encadrant pour faire une mise au point <br/>
+La simulation de foule est un sujet très vaste, c’est un procédé qui permet de simuler le ou les mouvements d’un très grand nombre de personnages. Aujourd’hui cela est utilisée dans un très grand nombre de domaines(pour simuler des évacuations, des situations de paniques au sein d’un groupe, ou encore dans les films ou jeux vidéos).
 
-(Jusqu'au 20/03) <br/> <br/>
--> Reflechir à une solution pour implémenté un nouveau comportement dans babylonJS <br/>
--> Ajouter ce nouveau comportement dans le jeu réalisé pendant le concours (seek behaviour)
--> Réunion <br/>
+Le but est d’implémenter plusieurs de ces comportements dans un environnement 3D et de les étudier.
 
-(Jusqu'au 10/04) <br/>
--> implémenté un nouveau comportement dans babylon JS (path behaviour) dans le jeu concours <br/>
--> Réunion <br/>
+## Présentation du groupe
+Le projet a été réalisé par trois personnes
 
-(Jusqu'au 24/04) <br/>
--> Commencer la super démo 3D avec différents comportements implémentés <br/>
--> Réunion <br/>
+- Otmane Rahim
+- Jrad Yassine
+- Alexandre Denos
 
-(Jusqu'au 15/05) <br/>
--> Finir la démo 3D et potentiellement ajouté de nouveaux comportements dans le jeu concours <br/>
+## Moteur 3D utilisé : BabylonJS
 
-gestion de projet : la gestion de projet se fera maintenant sur le git
+## Vidéo de la démo (cliquer pour être redirigé vers la vidéo) :
 
-## Lien rapport (en cours d'écriture) : https://jyassine.github.io/
-
-
-
+[![Demo CountPages alpha](https://j.gifs.com/MwP7z3.gif)](https://www.youtube.com/watch?v=krfpSqwIEiw&t=1s)
 
