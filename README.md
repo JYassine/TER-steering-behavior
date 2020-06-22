@@ -18,7 +18,7 @@ Le projet a été réalisé par trois personnes
 
 ## Moteur 3D utilisé : BabylonJS
 
-## Vidéo de la démo :
+## Vidéo de la démo (cliquer pour être redirigé vers la vidéo) :
 
 [![Demo CountPages alpha](https://j.gifs.com/MwP7z3.gif)](https://www.youtube.com/watch?v=krfpSqwIEiw&t=1s)
 
